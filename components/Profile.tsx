@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Camera, Pen, Plus, MessageCircle, UserCheck, ChevronDown, UserMinus, Ban, UserPlus, Clock, LayoutGrid, Flag, Calendar, X, AlertCircle, Lock, CheckCircle } from 'lucide-react';
+import { Camera, Pen, Plus, MessageCircle, UserCheck, ChevronDown, UserMinus, Ban, UserPlus, Clock, LayoutGrid, Flag, Calendar, X, AlertCircle, Lock, CheckCircle, ThumbsUp, Share2, Send, Smile, Globe, Bookmark, BookmarkMinus, Bell, BellOff, Download, Trash2, MoreHorizontal, ChevronRight, ChevronLeft } from 'lucide-react';
 import { User, Post, TabType, Photo, Album, VideoItem } from '../types';
 import CreatePost from './CreatePost';
 import PostCard from './PostCard';
@@ -41,7 +41,7 @@ interface ProfileProps {
   onAddPhotoToAlbum?: (albumId: string, photo: Photo) => void;
   onDeletePhoto?: (photoId: string) => void;
 
-  // Data Props for Videos (New)
+  // Data Props for Videos
   userVideos?: VideoItem[];
   onAddVideo?: (video: VideoItem) => void;
   onDeleteVideo?: (videoId: string) => void;
@@ -51,6 +51,15 @@ interface ProfileProps {
   onToggleSave?: (photo: Photo) => void;
   savedVideos?: VideoItem[];
   onToggleSaveVideo?: (video: VideoItem) => void;
+}
+
+// Local Comment Interface
+interface LocalComment {
+    id: string;
+    user: string;
+    avatar: string;
+    text: string;
+    timestamp: string;
 }
 
 type FriendshipStatus = 'friends' | 'not_friends' | 'request_sent';
@@ -76,7 +85,7 @@ const Profile: React.FC<ProfileProps> = ({
     onCreateAlbum,
     onAddPhotoToAlbum,
     onDeletePhoto,
-    userVideos = [], // Default to empty array
+    userVideos = [], 
     onAddVideo,
     onDeleteVideo,
     savedPhotos = [],
@@ -94,6 +103,14 @@ const Profile: React.FC<ProfileProps> = ({
   const [newName, setNewName] = useState('');
   const [passwordConfirm, setPasswordConfirm] = useState('');
   const [isUpdatingName, setIsUpdatingName] = useState(false);
+
+  // --- Advanced Lightbox State ---
+  const [viewingImage, setViewingImage] = useState<string | null>(null);
+  const [isLiked, setIsLiked] = useState(false);
+  const [likesCount, setLikesCount] = useState(120); // Mock starting count
+  const [commentsList, setCommentsList] = useState<LocalComment[]>([]);
+  const [commentInput, setCommentInput] = useState('');
+  const commentsEndRef = useRef<HTMLDivElement>(null);
 
   const friendMenuRef = useRef<HTMLDivElement>(null);
   const moreMenuRef = useRef<HTMLDivElement>(null); 
@@ -132,6 +149,32 @@ const Profile: React.FC<ProfileProps> = ({
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  useEffect(() => {
+      commentsEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [commentsList, viewingImage]);
+
+  // --- Lightbox Handlers ---
+  const handleLike = () => {
+      setIsLiked(!isLiked);
+      setLikesCount(prev => isLiked ? prev - 1 : prev + 1);
+  };
+
+  const handleSendComment = (e?: React.FormEvent) => {
+      e?.preventDefault();
+      if (!commentInput.trim()) return;
+
+      const newComment: LocalComment = {
+          id: Date.now().toString(),
+          user: currentUser.name,
+          avatar: currentUser.avatar,
+          text: commentInput,
+          timestamp: 'الآن'
+      };
+
+      setCommentsList([...commentsList, newComment]);
+      setCommentInput('');
+  };
 
   // --- Handlers ---
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, callback?: (url: string) => void) => {
@@ -237,13 +280,16 @@ const Profile: React.FC<ProfileProps> = ({
 
       {/* Header Section */}
       <div className="bg-white shadow-sm rounded-b-xl mb-4 pb-0 relative z-10">
-        {/* Cover Photo */}
-        <div className="relative h-[200px] md:h-[350px] w-full rounded-b-xl overflow-hidden bg-gray-300">
+        {/* Cover Photo - Clickable */}
+        <div 
+            className="relative h-[200px] md:h-[350px] w-full rounded-b-xl overflow-hidden bg-gray-300 group cursor-pointer"
+            onClick={() => profileUser.coverPhoto && setViewingImage(profileUser.coverPhoto)}
+        >
           {profileUser.coverPhoto ? (
                <img
                 src={profileUser.coverPhoto}
                 alt="Cover"
-                className="w-full h-full object-cover"
+                className="w-full h-full object-cover transition duration-300 group-hover:brightness-95"
               />
           ) : (
                <div className="w-full h-full flex items-center justify-center bg-gray-200 text-gray-400">
@@ -253,7 +299,7 @@ const Profile: React.FC<ProfileProps> = ({
           
           {isOwnProfile && (
             <button 
-                onClick={() => coverInputRef.current?.click()}
+                onClick={(e) => { e.stopPropagation(); coverInputRef.current?.click(); }}
                 className="absolute bottom-4 left-4 bg-white px-3 py-1.5 rounded-md flex items-center gap-2 font-semibold text-sm hover:bg-gray-100 transition shadow-sm z-10"
             >
                 <Camera className="w-5 h-5" />
@@ -265,15 +311,18 @@ const Profile: React.FC<ProfileProps> = ({
         {/* Profile Info Area */}
         <div className="px-4 md:px-8 relative pb-4">
           <div className="flex flex-col md:flex-row items-center md:items-end -mt-16 md:-mt-8 mb-4 gap-4">
-             {/* Avatar */}
+             {/* Avatar - Clickable */}
              <div className="relative z-10">
-                <div className="h-32 w-32 md:h-40 md:w-40 rounded-full border-4 border-white overflow-hidden bg-white shadow-md flex items-center justify-center">
-                    <img src={profileUser.avatar} alt={profileUser.name} className="w-full h-full object-cover" />
+                <div 
+                    className="h-32 w-32 md:h-40 md:w-40 rounded-full border-4 border-white overflow-hidden bg-white shadow-md flex items-center justify-center cursor-pointer group"
+                    onClick={() => setViewingImage(profileUser.avatar)}
+                >
+                    <img src={profileUser.avatar} alt={profileUser.name} className="w-full h-full object-cover group-hover:brightness-95 transition" />
                 </div>
                 {isOwnProfile && (
                     <div 
-                        onClick={() => avatarInputRef.current?.click()}
-                        className="absolute bottom-2 left-2 bg-gray-200 p-2 rounded-full cursor-pointer hover:bg-gray-300 border-2 border-white"
+                        onClick={(e) => { e.stopPropagation(); avatarInputRef.current?.click(); }}
+                        className="absolute bottom-2 left-2 bg-gray-200 p-2 rounded-full cursor-pointer hover:bg-gray-300 border-2 border-white z-20"
                         title="تحديث صورة الملف الشخصي"
                     >
                         <Camera className="w-5 h-5 text-black" />
@@ -564,6 +613,117 @@ const Profile: React.FC<ProfileProps> = ({
                   </div>
               </div>
           </div>
+      )}
+
+      {/* --- Advanced Split View Lightbox (Profile/Cover) --- */}
+      {viewingImage && (
+        <div className="fixed inset-0 z-[100] bg-black bg-opacity-95 flex items-center justify-center animate-fadeIn">
+           <div className="w-full h-full flex flex-col md:flex-row overflow-hidden">
+               
+               {/* Image Section */}
+               <div className="flex-1 bg-black flex items-center justify-center relative group" onClick={(e) => { e.stopPropagation(); }}>
+                    
+                    <button className="absolute top-4 left-4 p-2 bg-black/50 hover:bg-white/20 rounded-full text-white z-[102]" onClick={() => setViewingImage(null)}>
+                        <X className="w-6 h-6" />
+                    </button>
+
+                    <button className="absolute right-4 top-1/2 -translate-y-1/2 p-3 bg-black/50 hover:bg-white/20 rounded-full text-white z-10 opacity-50 cursor-not-allowed">
+                        <ChevronRight className="w-8 h-8" />
+                    </button>
+
+                    <img 
+                        src={viewingImage} 
+                        className="max-w-full max-h-[100vh] w-full h-full object-contain" 
+                        alt="Profile Full screen" 
+                    />
+
+                    <button className="absolute left-4 top-1/2 -translate-y-1/2 p-3 bg-black/50 hover:bg-white/20 rounded-full text-white z-10 opacity-50 cursor-not-allowed">
+                        <ChevronLeft className="w-8 h-8" />
+                    </button>
+               </div>
+
+               {/* Sidebar Section */}
+               <div className="w-full md:w-[360px] bg-white flex flex-col h-[40vh] md:h-full border-l border-gray-800 shadow-xl" onClick={(e) => e.stopPropagation()}>
+                    <div className="p-4 border-b border-gray-200 flex items-center gap-3 relative">
+                        <img src={currentUser.avatar} alt="User" className="w-10 h-10 rounded-full border border-gray-200" />
+                        <div>
+                            <h4 className="font-bold text-sm text-gray-900">{currentUser.name}</h4>
+                            <div className="flex items-center gap-1 text-xs text-gray-500">
+                                <span>الآن</span>
+                                <span>·</span>
+                                <Globe className="w-3 h-3" />
+                            </div>
+                        </div>
+                        
+                        {/* Static Menu Button (No dropdown for profile view yet) */}
+                        <div className="mr-auto relative">
+                            <button className="p-2 text-gray-500 hover:bg-gray-100 rounded-full transition">
+                                <MoreHorizontal className="w-5 h-5" />
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Stats & Actions */}
+                    <div className="px-4 py-3 flex justify-between items-center text-sm text-gray-500 border-b border-gray-100">
+                        <div className="flex items-center gap-1">
+                            <div className="bg-fb-blue p-1 rounded-full"><ThumbsUp className="w-3 h-3 text-white fill-current" /></div>
+                            <span>{likesCount > 0 ? likesCount : ''}</span>
+                        </div>
+                        <div className="flex gap-3">
+                            <span>{commentsList.length} تعليق</span>
+                        </div>
+                    </div>
+                    <div className="px-2 py-1 flex items-center justify-between border-b border-gray-200">
+                         <button onClick={handleLike} className={`flex-1 flex items-center justify-center gap-2 py-2 hover:bg-gray-100 rounded-md transition font-medium text-sm ${isLiked ? 'text-fb-blue' : 'text-gray-600'}`}>
+                            <ThumbsUp className={`w-5 h-5 ${isLiked ? 'fill-current' : ''}`} /> أعجبني
+                         </button>
+                         <button className="flex-1 flex items-center justify-center gap-2 py-2 hover:bg-gray-100 rounded-md transition font-medium text-gray-600 text-sm">
+                            <MessageCircle className="w-5 h-5" /> تعليق
+                         </button>
+                         <button className="flex-1 flex items-center justify-center gap-2 py-2 hover:bg-gray-100 rounded-md transition font-medium text-gray-600 text-sm">
+                            <Share2 className="w-5 h-5" /> مشاركة
+                         </button>
+                    </div>
+
+                    {/* Comments List */}
+                    <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50">
+                        {commentsList.length === 0 ? (
+                            <div className="text-center text-gray-400 py-10 text-sm">كن أول من يعلق على هذه الصورة.</div>
+                        ) : (
+                            commentsList.map(comment => (
+                                <div key={comment.id} className="flex gap-2 items-start">
+                                    <img src={comment.avatar} className="w-8 h-8 rounded-full" alt="commenter" />
+                                    <div className="flex flex-col">
+                                        <div className="bg-gray-200 px-3 py-2 rounded-2xl rounded-tr-none">
+                                            <span className="font-bold text-xs block text-gray-900">{comment.user}</span>
+                                            <span className="text-sm text-gray-800">{comment.text}</span>
+                                        </div>
+                                        <div className="flex gap-3 text-[11px] text-gray-500 pr-2 mt-1">
+                                            <span className="font-semibold cursor-pointer hover:underline">أعجبني</span>
+                                            <span className="font-semibold cursor-pointer hover:underline">رد</span>
+                                            <span>{comment.timestamp}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))
+                        )}
+                        <div ref={commentsEndRef} />
+                    </div>
+
+                    {/* Input Area */}
+                    <div className="p-3 border-t border-gray-200 bg-white">
+                        <form onSubmit={handleSendComment} className="flex items-center gap-2">
+                             <img src={currentUser.avatar} className="w-8 h-8 rounded-full" alt="me" />
+                             <div className="flex-1 relative">
+                                 <input type="text" className="w-full bg-gray-100 border-none rounded-full py-2 px-3 pr-10 text-sm outline-none focus:ring-1 focus:ring-gray-300 transition" placeholder="اكتب تعليقاً..." value={commentInput} onChange={(e) => setCommentInput(e.target.value)} />
+                                 <Smile className="w-5 h-5 text-gray-500 absolute left-3 top-1/2 -translate-y-1/2 cursor-pointer hover:text-gray-700" />
+                             </div>
+                             <button type="submit" disabled={!commentInput.trim()} className="text-fb-blue disabled:opacity-50 hover:bg-blue-50 p-2 rounded-full transition"><Send className="w-5 h-5 rotate-180" /></button>
+                        </form>
+                    </div>
+               </div>
+           </div>
+        </div>
       )}
     </div>
   );

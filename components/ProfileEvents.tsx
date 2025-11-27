@@ -22,7 +22,6 @@ const ProfileEvents: React.FC = () => {
 
   return (
     <div className="bg-white rounded-lg shadow-sm min-h-[500px] animate-fadeIn p-4 md:p-6">
-      {/* Header */}
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-xl font-bold text-gray-900">المناسبات</h2>
         <div className="flex gap-2">

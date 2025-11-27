@@ -1,19 +1,22 @@
 
 import React, { useState } from 'react';
-import { ThumbsUp, MessageCircle, Share2, MoreHorizontal, Globe } from 'lucide-react';
+import { ThumbsUp, MessageCircle, Share2, MoreHorizontal, Globe, Trash2, Pin } from 'lucide-react';
 import { Post, Comment, User } from '../types';
 
 interface PostCardProps {
   post: Post;
   currentUser: User;
+  onTogglePin?: (postId: string) => void;
+  onDelete?: (postId: string) => void;
 }
 
-const PostCard: React.FC<PostCardProps> = ({ post, currentUser }) => {
+const PostCard: React.FC<PostCardProps> = ({ post, currentUser, onTogglePin, onDelete }) => {
   const [isLiked, setIsLiked] = useState(post.isLiked);
   const [likesCount, setLikesCount] = useState(post.likes);
   const [showComments, setShowComments] = useState(false);
   const [comments, setComments] = useState<Comment[]>(post.comments);
   const [newComment, setNewComment] = useState('');
+  const [showMenu, setShowMenu] = useState(false);
 
   const handleLike = () => {
     setIsLiked(!isLiked);
@@ -50,14 +53,40 @@ const PostCard: React.FC<PostCardProps> = ({ post, currentUser }) => {
           <div className="flex flex-col">
             <h4 className="font-semibold text-[15px] hover:underline cursor-pointer text-fb-text">{post.author.name}</h4>
             <div className="flex items-center gap-1 text-xs text-gray-500">
+              {post.isPinned && <Pin className="h-3 w-3 text-fb-blue fill-current rotate-45" />}
               <span>{post.timestamp}</span>
               <span>·</span>
               <Globe className="h-3 w-3" />
             </div>
           </div>
         </div>
-        <div className="p-2 hover:bg-gray-100 rounded-full cursor-pointer transition">
-          <MoreHorizontal className="h-5 w-5 text-gray-600" />
+        
+        {/* Menu */}
+        <div className="relative">
+            <div 
+                className="p-2 hover:bg-gray-100 rounded-full cursor-pointer transition"
+                onClick={() => setShowMenu(!showMenu)}
+            >
+              <MoreHorizontal className="h-5 w-5 text-gray-600" />
+            </div>
+            {showMenu && (
+                <div className="absolute left-0 top-full mt-1 w-48 bg-white shadow-xl rounded-lg border border-gray-100 z-10 overflow-hidden text-right">
+                    {onTogglePin && (
+                        <button onClick={() => { onTogglePin(post.id); setShowMenu(false); }} className="w-full text-right px-4 py-3 hover:bg-gray-100 text-sm flex items-center gap-2 text-gray-700">
+                             <Pin className="w-4 h-4" /> {post.isPinned ? 'إلغاء التثبيت' : 'تثبيت المنشور'}
+                        </button>
+                    )}
+                    {/* Show delete only if owner or if onDelete is explicitly passed */}
+                    {onDelete && (currentUser.id === post.author.id) && (
+                        <button onClick={() => { onDelete(post.id); setShowMenu(false); }} className="w-full text-right px-4 py-3 hover:bg-gray-100 text-sm text-red-600 flex items-center gap-2">
+                             <Trash2 className="w-4 h-4" /> حذف المنشور
+                        </button>
+                    )}
+                    {!onDelete && !onTogglePin && (
+                        <div className="px-4 py-2 text-sm text-gray-500">لا توجد خيارات متاحة</div>
+                    )}
+                </div>
+            )}
         </div>
       </div>
 

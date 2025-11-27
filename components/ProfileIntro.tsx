@@ -1,4 +1,5 @@
 
+
 import React, { useState, useRef } from 'react';
 import { Globe, Heart, Search, X, Check, Coffee, Music, Camera, Book, Gamepad2, Plane, Code, Dumbbell, Palette, PenTool, Tv, Headphones, Utensils, Laptop, Car, Bike, Leaf, Sun, Moon, Star, Anchor, Gift, Smile, Mic, Video, Briefcase, Upload, Plus, PenLine, Quote, Droplet } from 'lucide-react';
 import { User, Photo } from '../types';
@@ -114,7 +115,7 @@ const ProfileIntro: React.FC<ProfileIntroProps> = ({ currentUser, isOwnProfile, 
 
   const handleFeaturedFilesSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
       if (e.target.files) {
-          const promises = Array.from(e.target.files).map(file => readFileAsBase64(file));
+          const promises = Array.from(e.target.files).map((file: File) => readFileAsBase64(file));
           const results = await Promise.all(promises);
           setTempFeaturedPhotos(prev => [...prev, ...results]);
       }

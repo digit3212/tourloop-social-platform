@@ -41,7 +41,8 @@ const initialPosts: Post[] = [
       }
     ],
     shares: 45,
-    image: 'https://picsum.photos/600/400?random=10'
+    image: 'https://picsum.photos/600/400?random=10',
+    isPinned: false
   },
   {
     id: '2',
@@ -56,7 +57,8 @@ const initialPosts: Post[] = [
     likes: 89,
     comments: [],
     shares: 2,
-    image: 'https://picsum.photos/600/400?random=11'
+    image: 'https://picsum.photos/600/400?random=11',
+    isPinned: false
   }
 ];
 
@@ -109,7 +111,8 @@ const App: React.FC = () => {
       setTimeout(() => setAppNotification(null), 4000);
   };
 
-  const handleCreatePost = (content: string, image?: string) => {
+  // Modified handleCreatePost to accept skipPhotoAdd flag
+  const handleCreatePost = (content: string, image?: string, skipPhotoAdd: boolean = false) => {
     const newPost: Post = {
       id: Date.now().toString(),
       author: currentUser,
@@ -119,19 +122,58 @@ const App: React.FC = () => {
       likes: 0,
       comments: [],
       shares: 0,
+      isPinned: false
     };
-    setPosts([newPost, ...posts]);
-    // If post has image, also add to photos
-    if (image && !image.startsWith('data:video')) {
-        const newPhoto: Photo = {
-            id: `post_img_${Date.now()}`,
-            url: image,
-            likes: 0,
-            comments: 0
-        };
-        setYourPhotos(prev => [newPhoto, ...prev]);
+
+    // Update posts: Keep pinned posts at top, insert new post after them
+    setPosts(prev => {
+        const pinned = prev.filter(p => p.isPinned);
+        const unpinned = prev.filter(p => !p.isPinned);
+        return [...pinned, newPost, ...unpinned];
+    });
+
+    // If post has image, add to photos ONLY if skipPhotoAdd is false AND it's not a video
+    if (image && !image.startsWith('data:video') && !skipPhotoAdd) {
+        setYourPhotos(prev => {
+            // Double check: don't add if exact same URL already exists
+            const exists = prev.some(p => p.url === image);
+            if (exists) return prev;
+
+            const newPhoto: Photo = {
+                id: `post_img_${Date.now()}`,
+                url: image,
+                likes: 0,
+                comments: 0
+            };
+            return [newPhoto, ...prev];
+        });
     }
     showNotification('تم نشر المنشور بنجاح');
+  };
+
+  const handleTogglePinPost = (postId: string) => {
+      setPosts(prev => {
+          // 1. Update the pinned state
+          const updated = prev.map(post => 
+              post.id === postId ? { ...post, isPinned: !post.isPinned } : post
+          );
+          
+          // 2. Re-sort: Pinned items go to the top
+          const pinned = updated.filter(p => p.isPinned);
+          const unpinned = updated.filter(p => !p.isPinned);
+          
+          return [...pinned, ...unpinned];
+      });
+
+      const post = posts.find(p => p.id === postId);
+      if (post) {
+          showNotification(!post.isPinned ? 'تم تثبيت المنشور في الأعلى 📌' : 'تم إلغاء تثبيت المنشور');
+      }
+  };
+
+  const handleDeletePost = (postId: string) => {
+      setPosts(prev => prev.filter(p => p.id !== postId));
+      showNotification('تم حذف المنشور بنجاح', 'info');
   };
 
   const handleUpdateProfilePhoto = (newUrl: string) => {
@@ -157,8 +199,8 @@ const App: React.FC = () => {
       if (viewingProfile.id === currentUser.id) {
           setViewingProfile(updatedUser);
       }
-      // Add a post about profile picture update
-      handleCreatePost(`قام ${currentUser.name} بتحديث صورة الملف الشخصي.`, newUrl);
+      // Pass true to skip adding photo again in handleCreatePost
+      handleCreatePost(`قام ${currentUser.name} بتحديث صورة الملف الشخصي.`, newUrl, true);
       showNotification('تم تحديث صورة الملف الشخصي بنجاح');
   };
 
@@ -185,8 +227,18 @@ const App: React.FC = () => {
       if (viewingProfile.id === currentUser.id) {
           setViewingProfile(updatedUser);
       }
-      handleCreatePost(`قام ${currentUser.name} بتحديث صورة الغلاف.`, newUrl);
+      // Pass true to skip adding photo again
+      handleCreatePost(`قام ${currentUser.name} بتحديث صورة الغلاف.`, newUrl, true);
       showNotification('تم تحديث صورة الغلاف بنجاح');
+  };
+
+  const handleUpdateName = (newName: string) => {
+      const updatedUser = { ...currentUser, name: newName };
+      setCurrentUser(updatedUser);
+      if (viewingProfile.id === currentUser.id) {
+          setViewingProfile(updatedUser);
+      }
+      showNotification('تم تغيير الاسم بنجاح');
   };
 
   const handleAddStory = (mediaUrl: string) => {
@@ -304,6 +356,8 @@ const App: React.FC = () => {
                 posts={posts}
                 onAddStory={handleAddStory} 
                 onPostCreate={handleCreatePost}
+                onTogglePin={handleTogglePinPost}
+                onDeletePost={handleDeletePost}
              />
            )}
 
@@ -332,10 +386,13 @@ const App: React.FC = () => {
                 // Posts
                 posts={posts}
                 onPostCreate={handleCreatePost}
+                onTogglePin={handleTogglePinPost}
+                onDeletePost={handleDeletePost}
 
                 // Update Handlers
                 onUpdateAvatar={handleUpdateProfilePhoto}
                 onUpdateCover={handleUpdateCoverPhoto}
+                onUpdateName={handleUpdateName} 
                 onAddStory={handleAddStory}
                 
                 // Photos/Albums

@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Camera, Pen, Plus, MessageCircle, UserCheck, ChevronDown, UserMinus, Ban, UserPlus, Clock } from 'lucide-react';
+import { Camera, Pen, Plus, MessageCircle, UserCheck, ChevronDown, UserMinus, Ban, UserPlus, Clock, LayoutGrid, Flag, Calendar } from 'lucide-react';
 import { User, Post, TabType, Photo, Album, VideoItem } from '../types';
 import CreatePost from './CreatePost';
 import PostCard from './PostCard';
@@ -21,6 +21,8 @@ interface ProfileProps {
   // Posts
   posts: Post[];
   onPostCreate: (content: string, image?: string) => void;
+  onTogglePin?: (postId: string) => void;
+  onDeletePost?: (postId: string) => void;
 
   // Update Handlers
   onUpdateAvatar?: (url: string) => void;
@@ -53,6 +55,8 @@ const Profile: React.FC<ProfileProps> = ({
     defaultTab,
     posts,
     onPostCreate,
+    onTogglePin,
+    onDeletePost,
     onUpdateAvatar,
     onUpdateCover,
     onAddStory,
@@ -69,9 +73,11 @@ const Profile: React.FC<ProfileProps> = ({
 }) => {
   const [activeTab, setActiveTab] = useState<TabType>(defaultTab || 'posts');
   const [showFriendMenu, setShowFriendMenu] = useState(false);
+  const [showMoreMenu, setShowMoreMenu] = useState(false); // New state for "More" menu
   const [friendshipStatus, setFriendshipStatus] = useState<FriendshipStatus>('friends'); 
   
   const friendMenuRef = useRef<HTMLDivElement>(null);
+  const moreMenuRef = useRef<HTMLDivElement>(null); // New ref for "More" menu
   
   // File Input Refs
   const avatarInputRef = useRef<HTMLInputElement>(null);
@@ -91,6 +97,7 @@ const Profile: React.FC<ProfileProps> = ({
           setActiveTab('posts');
       }
       setShowFriendMenu(false);
+      setShowMoreMenu(false);
       setFriendshipStatus('friends'); 
   }, [profileUser.id, defaultTab]);
 
@@ -98,6 +105,9 @@ const Profile: React.FC<ProfileProps> = ({
     const handleClickOutside = (event: MouseEvent) => {
         if (friendMenuRef.current && !friendMenuRef.current.contains(event.target as Node)) {
             setShowFriendMenu(false);
+        }
+        if (moreMenuRef.current && !moreMenuRef.current.contains(event.target as Node)) {
+            setShowMoreMenu(false);
         }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -184,6 +194,16 @@ const Profile: React.FC<ProfileProps> = ({
           );
       }
   };
+
+  const renderPlaceholderContent = (title: string, icon: React.ReactNode) => (
+      <div className="bg-white rounded-lg shadow-sm p-10 text-center flex flex-col items-center min-h-[300px] justify-center">
+          <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+              {icon}
+          </div>
+          <h3 className="text-xl font-bold text-gray-700 mb-2">{title}</h3>
+          <p className="text-gray-500">لا توجد {title} لعرضها حالياً.</p>
+      </div>
+  );
 
   return (
     <div className="w-full max-w-[940px] mx-auto pb-10">
@@ -295,6 +315,44 @@ const Profile: React.FC<ProfileProps> = ({
              <div onClick={() => setActiveTab('friends')} className={getTabClass('friends')}>الأصدقاء</div>
              <div onClick={() => setActiveTab('photos')} className={getTabClass('photos')}>الصور</div>
              <div onClick={() => setActiveTab('videos')} className={getTabClass('videos')}>مقاطع فيديو/ريلز</div>
+             
+             {/* More Dropdown */}
+             <div className="relative" ref={moreMenuRef}>
+                 <div 
+                    onClick={() => setShowMoreMenu(!showMoreMenu)}
+                    className={`flex items-center gap-1 px-4 py-3 font-semibold cursor-pointer whitespace-nowrap transition rounded-md ${
+                        ['groups', 'pages', 'events'].includes(activeTab)
+                        ? 'text-fb-blue border-b-[3px] border-fb-blue rounded-none'
+                        : 'text-gray-500 hover:bg-gray-100'
+                    }`}
+                 >
+                     <span>المزيد</span>
+                     <ChevronDown className="w-4 h-4" />
+                 </div>
+                 
+                 {showMoreMenu && (
+                     <div className="absolute top-full right-0 mt-1 w-48 bg-white rounded-lg shadow-xl border border-gray-100 z-50 overflow-hidden animate-fadeIn">
+                         <button 
+                            onClick={() => { setActiveTab('groups'); setShowMoreMenu(false); }} 
+                            className="w-full text-right px-4 py-3 hover:bg-gray-100 text-gray-700 transition text-sm font-medium"
+                         >
+                             المجموعات
+                         </button>
+                         <button 
+                            onClick={() => { setActiveTab('pages'); setShowMoreMenu(false); }} 
+                            className="w-full text-right px-4 py-3 hover:bg-gray-100 text-gray-700 transition text-sm font-medium"
+                         >
+                             الصفحات
+                         </button>
+                         <button 
+                            onClick={() => { setActiveTab('events'); setShowMoreMenu(false); }} 
+                            className="w-full text-right px-4 py-3 hover:bg-gray-100 text-gray-700 transition text-sm font-medium"
+                         >
+                             المناسبات
+                         </button>
+                     </div>
+                 )}
+             </div>
           </div>
         </div>
       </div>
@@ -318,7 +376,13 @@ const Profile: React.FC<ProfileProps> = ({
                 
                 {userPosts.length > 0 ? (
                     userPosts.map(post => (
-                        <PostCard key={post.id} post={post} currentUser={currentUser} />
+                        <PostCard 
+                            key={post.id} 
+                            post={post} 
+                            currentUser={currentUser} 
+                            onTogglePin={onTogglePin}
+                            onDelete={onDeletePost}
+                        />
                     ))
                 ) : (
                     <div className="bg-white p-8 rounded-lg shadow-sm text-center text-gray-500">
@@ -363,6 +427,23 @@ const Profile: React.FC<ProfileProps> = ({
                     onToggleSaveVideo={onToggleSaveVideo}
                />
            </div>
+      )}
+      
+      {/* New Placeholder Tabs */}
+      {activeTab === 'groups' && (
+          <div className="px-4 md:px-0 animate-fadeIn">
+              {renderPlaceholderContent('المجموعات', <LayoutGrid className="w-8 h-8 text-gray-400" />)}
+          </div>
+      )}
+      {activeTab === 'pages' && (
+          <div className="px-4 md:px-0 animate-fadeIn">
+              {renderPlaceholderContent('الصفحات', <Flag className="w-8 h-8 text-gray-400" />)}
+          </div>
+      )}
+      {activeTab === 'events' && (
+          <div className="px-4 md:px-0 animate-fadeIn">
+              {renderPlaceholderContent('المناسبات', <Calendar className="w-8 h-8 text-gray-400" />)}
+          </div>
       )}
     </div>
   );

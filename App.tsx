@@ -101,6 +101,9 @@ const App: React.FC = () => {
   // Real Saved Items State
   const [savedPhotos, setSavedPhotos] = useState<Photo[]>([]);
   const [savedVideos, setSavedVideos] = useState<VideoItem[]>([]);
+  
+  // Global User Videos State
+  const [userVideos, setUserVideos] = useState<VideoItem[]>([]);
 
   const [viewingProfile, setViewingProfile] = useState<User>(currentUser);
   const [activeChatUser, setActiveChatUser] = useState<User | null>(null);
@@ -111,7 +114,14 @@ const App: React.FC = () => {
       setTimeout(() => setAppNotification(null), 4000);
   };
 
-  // Modified handleCreatePost to accept skipPhotoAdd flag
+  // Helper to format duration
+  const formatDuration = (seconds: number) => {
+      const min = Math.floor(seconds / 60);
+      const sec = Math.floor(seconds % 60);
+      return `${min}:${sec < 10 ? '0' : ''}${sec}`;
+  };
+
+  // Modified handleCreatePost to accept skipPhotoAdd flag and handle Videos
   const handleCreatePost = (content: string, image?: string, skipPhotoAdd: boolean = false) => {
     const newPost: Post = {
       id: Date.now().toString(),
@@ -125,17 +135,40 @@ const App: React.FC = () => {
       isPinned: false
     };
 
-    // Update posts: Keep pinned posts at top, insert new post after them
+    // Update posts
     setPosts(prev => {
         const pinned = prev.filter(p => p.isPinned);
         const unpinned = prev.filter(p => !p.isPinned);
         return [...pinned, newPost, ...unpinned];
     });
 
-    // If post has image, add to photos ONLY if skipPhotoAdd is false AND it's not a video
-    if (image && !image.startsWith('data:video') && !skipPhotoAdd) {
+    // 1. Handle Video Uploads to ProfileVideos
+    if (image && image.startsWith('data:video')) {
+        // Create a temporary video element to extract metadata
+        const videoElement = document.createElement('video');
+        videoElement.src = image;
+        videoElement.onloadedmetadata = () => {
+            const isReel = videoElement.videoHeight > videoElement.videoWidth;
+            const newItem: VideoItem = {
+                id: `vid_post_${Date.now()}`,
+                url: image,
+                title: content ? content.substring(0, 50) : (isReel ? 'ريلز جديد' : 'فيديو جديد'),
+                views: 0,
+                timestamp: 'الآن',
+                duration: formatDuration(videoElement.duration),
+                type: isReel ? 'reel' : 'video',
+                likes: 0,
+                comments: 0
+            };
+            setUserVideos(prev => [newItem, ...prev]);
+            
+            // Clean up
+            videoElement.remove();
+        };
+    } 
+    // 2. Handle Image Uploads to Photos (Only if not video and not skipped)
+    else if (image && !skipPhotoAdd) {
         setYourPhotos(prev => {
-            // Double check: don't add if exact same URL already exists
             const exists = prev.some(p => p.url === image);
             if (exists) return prev;
 
@@ -151,17 +184,24 @@ const App: React.FC = () => {
     showNotification('تم نشر المنشور بنجاح');
   };
 
+  const handleAddVideoDirectly = (video: VideoItem) => {
+      setUserVideos(prev => [video, ...prev]);
+      showNotification('تم إضافة الفيديو بنجاح');
+  };
+
+  const handleDeleteVideo = (videoId: string) => {
+      setUserVideos(prev => prev.filter(v => v.id !== videoId));
+      setSavedVideos(prev => prev.filter(v => v.id !== videoId));
+      showNotification('تم حذف الفيديو بنجاح', 'info');
+  };
+
   const handleTogglePinPost = (postId: string) => {
       setPosts(prev => {
-          // 1. Update the pinned state
           const updated = prev.map(post => 
               post.id === postId ? { ...post, isPinned: !post.isPinned } : post
           );
-          
-          // 2. Re-sort: Pinned items go to the top
           const pinned = updated.filter(p => p.isPinned);
           const unpinned = updated.filter(p => !p.isPinned);
-          
           return [...pinned, ...unpinned];
       });
 
@@ -199,7 +239,6 @@ const App: React.FC = () => {
       if (viewingProfile.id === currentUser.id) {
           setViewingProfile(updatedUser);
       }
-      // Pass true to skip adding photo again in handleCreatePost
       handleCreatePost(`قام ${currentUser.name} بتحديث صورة الملف الشخصي.`, newUrl, true);
       showNotification('تم تحديث صورة الملف الشخصي بنجاح');
   };
@@ -227,7 +266,6 @@ const App: React.FC = () => {
       if (viewingProfile.id === currentUser.id) {
           setViewingProfile(updatedUser);
       }
-      // Pass true to skip adding photo again
       handleCreatePost(`قام ${currentUser.name} بتحديث صورة الغلاف.`, newUrl, true);
       showNotification('تم تحديث صورة الغلاف بنجاح');
   };
@@ -403,6 +441,11 @@ const App: React.FC = () => {
                 onAddPhotoToAlbum={handleAddPhotoToSpecificAlbum}
                 onDeletePhoto={handleDeletePhoto}
                 
+                // Videos Props
+                userVideos={userVideos}
+                onAddVideo={handleAddVideoDirectly}
+                onDeleteVideo={handleDeleteVideo}
+
                 // Saved Props
                 savedPhotos={savedPhotos}
                 onToggleSave={handleToggleSave}

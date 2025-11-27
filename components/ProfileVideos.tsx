@@ -1,5 +1,5 @@
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { Video, Film, Plus, Play, MoreHorizontal, Clock, Eye, Trash2, X, ChevronRight, ChevronLeft, PictureInPicture, ThumbsUp, MessageCircle, Share2, Send, Smile, Bookmark, BookmarkMinus, Globe, Users, AtSign, UserPlus, Lock, Bell, BellOff, Download, ArrowRight } from 'lucide-react';
 import { User, VideoItem } from '../types';
 
@@ -8,6 +8,10 @@ interface ProfileVideosProps {
   isOwnProfile: boolean;
   savedVideos?: VideoItem[];
   onToggleSaveVideo?: (video: VideoItem) => void;
+  // New Props
+  userVideos?: VideoItem[];
+  onAddVideo?: (video: VideoItem) => void;
+  onDeleteVideo?: (videoId: string) => void;
 }
 
 // Local interface for comments inside lightbox
@@ -27,7 +31,10 @@ const ProfileVideos: React.FC<ProfileVideosProps> = ({
     currentUser, 
     isOwnProfile,
     savedVideos = [],
-    onToggleSaveVideo
+    onToggleSaveVideo,
+    userVideos = [], // Receiving global videos
+    onAddVideo,
+    onDeleteVideo
 }) => {
   const [activeTab, setActiveTab] = useState<'videos' | 'reels'>('videos');
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -35,10 +42,10 @@ const ProfileVideos: React.FC<ProfileVideosProps> = ({
   const commentsEndRef = useRef<HTMLDivElement>(null);
   const videoPlayerRef = useRef<HTMLVideoElement>(null);
 
-  // Local state for videos (Standard Videos)
-  const [videos, setVideos] = useState<VideoItem[]>([]);
-  // Local state for reels (Vertical Videos)
-  const [reels, setReels] = useState<VideoItem[]>([]);
+  // Derived State: Filter global userVideos based on type
+  // This replaces the local state to ensure synchronization with App.tsx
+  const videos = useMemo(() => userVideos.filter(v => v.type === 'video'), [userVideos]);
+  const reels = useMemo(() => userVideos.filter(v => v.type === 'reel'), [userVideos]);
 
   // Lightbox State
   const [lightboxOpen, setLightboxOpen] = useState(false);
@@ -134,7 +141,7 @@ const ProfileVideos: React.FC<ProfileVideosProps> = ({
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
       const file = e.target.files?.[0];
-      if (file) {
+      if (file && onAddVideo) {
           const reader = new FileReader();
           reader.onloadend = async () => {
               const base64 = reader.result as string;
@@ -143,7 +150,7 @@ const ProfileVideos: React.FC<ProfileVideosProps> = ({
               const detectedType = isReel ? 'reel' : 'video';
 
               const newItem: VideoItem = {
-                  id: Date.now().toString(),
+                  id: `vid_direct_${Date.now()}`,
                   url: base64,
                   title: isReel ? 'ريلز جديد' : 'فيديو جديد',
                   views: 0,
@@ -154,11 +161,13 @@ const ProfileVideos: React.FC<ProfileVideosProps> = ({
                   comments: 0
               };
 
+              // Use global handler only
+              onAddVideo(newItem);
+              
+              // Switch tab
               if (detectedType === 'video') {
-                  setVideos(prev => [newItem, ...prev]);
                   setActiveTab('videos');
               } else {
-                  setReels(prev => [newItem, ...prev]);
                   setActiveTab('reels');
               }
           };
@@ -168,14 +177,11 @@ const ProfileVideos: React.FC<ProfileVideosProps> = ({
   };
 
   const handleDelete = (id: string) => {
-     // Close lightbox first
      if (lightboxOpen) setLightboxOpen(false);
 
      setTimeout(() => {
-         if (activeTab === 'videos') {
-             setVideos(prev => prev.filter(v => v.id !== id));
-         } else {
-             setReels(prev => prev.filter(r => r.id !== id));
+         if (onDeleteVideo) {
+             onDeleteVideo(id);
          }
      }, 100);
      setShowMenu(false);
@@ -389,7 +395,7 @@ const ProfileVideos: React.FC<ProfileVideosProps> = ({
            )}
        </div>
 
-       {/* --- SPLIT VIEW LIGHTBOX (PHOTOS LOGIC APPLIED TO VIDEOS) --- */}
+       {/* --- SPLIT VIEW LIGHTBOX --- */}
        {lightboxOpen && currentVideo && (
         <div className="fixed inset-0 z-[100] bg-black bg-opacity-95 flex items-center justify-center animate-fadeIn">
            <div className="w-full h-full flex flex-col md:flex-row overflow-hidden">

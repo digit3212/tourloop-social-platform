@@ -11,6 +11,8 @@ interface FeedProps {
   posts: Post[];
   onAddStory: (mediaUrl: string) => void;
   onPostCreate: (content: string, image?: string) => void;
+  onTogglePin?: (postId: string) => void;
+  onDeletePost?: (postId: string) => void;
 }
 
 // Interface for Floating Emoji Animation
@@ -22,7 +24,7 @@ interface FloatingEmoji {
 
 const REACTION_EMOJIS = ["👍", "❤️", "😂", "😮", "😢", "😡"];
 
-const Feed: React.FC<FeedProps> = ({ currentUser, stories, posts, onAddStory, onPostCreate }) => {
+const Feed: React.FC<FeedProps> = ({ currentUser, stories, posts, onAddStory, onPostCreate, onTogglePin, onDeletePost }) => {
   
   // Story Viewer State
   const [viewingStoryIndex, setViewingStoryIndex] = useState<number | null>(null);
@@ -186,7 +188,13 @@ const Feed: React.FC<FeedProps> = ({ currentUser, stories, posts, onAddStory, on
       <CreatePost currentUser={currentUser} onPostCreate={onPostCreate} />
       
       {posts.map(post => (
-        <PostCard key={post.id} post={post} currentUser={currentUser} />
+        <PostCard 
+            key={post.id} 
+            post={post} 
+            currentUser={currentUser} 
+            onTogglePin={onTogglePin}
+            onDelete={onDeletePost}
+        />
       ))}
       
       <div className="flex justify-center py-4">

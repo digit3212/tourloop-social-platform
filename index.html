@@ -15,7 +15,7 @@
             },
             colors: {
               fb: {
-                blue: '#065F46', // Emerald 850 (Custom Dark Green)
+                blue: '#065F46', // Emerald 850
                 gray: '#F0F2F5',
                 dark: '#242526',
                 hover: '#F2F2F2',
@@ -32,14 +32,12 @@
         background-color: #F0F2F5;
         overflow-y: scroll;
       }
-      /* Hide scrollbar for Chrome, Safari and Opera */
       .no-scrollbar::-webkit-scrollbar {
           display: none;
       }
-      /* Hide scrollbar for IE, Edge and Firefox */
       .no-scrollbar {
-          -ms-overflow-style: none;  /* IE and Edge */
-          scrollbar-width: none;  /* Firefox */
+          -ms-overflow-style: none;
+          scrollbar-width: none;
       }
     </style>
   <script type="importmap">
@@ -58,5 +56,6 @@
 </head>
   <body>
     <div id="root"></div>
+    <script type="module" src="./index.tsx"></script>
   </body>
 </html>

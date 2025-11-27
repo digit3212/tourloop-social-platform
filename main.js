@@ -10,5 +10,10 @@ function App() {
 }
 
 const rootElement = document.getElementById("root");
-const root = createRoot(rootElement);
-root.render(<App />);
+
+if (rootElement) {
+  const root = createRoot(rootElement);
+  root.render(<App />);
+} else {
+  console.error("لم يتم العثور على عنصر root في الصفحة");
+}

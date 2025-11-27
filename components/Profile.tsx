@@ -106,6 +106,7 @@ const Profile: React.FC<ProfileProps> = ({
 
   // --- Advanced Lightbox State ---
   const [viewingImage, setViewingImage] = useState<string | null>(null);
+  const [profileImagesList, setProfileImagesList] = useState<string[]>([]); // Determines navigation list
   const [isLiked, setIsLiked] = useState(false);
   const [likesCount, setLikesCount] = useState(120); // Mock starting count
   const [commentsList, setCommentsList] = useState<LocalComment[]>([]);
@@ -155,6 +156,84 @@ const Profile: React.FC<ProfileProps> = ({
   }, [commentsList, viewingImage]);
 
   // --- Lightbox Handlers ---
+  
+  // Generic open helper
+  const handleOpenLightbox = (imgSrc: string) => {
+      setViewingImage(imgSrc);
+      setLikesCount(120); // Reset for demo
+      setIsLiked(false);
+      setCommentsList([]);
+  };
+
+  // Specific handler for Profile Picture click
+  const handleViewAvatar = (e: React.MouseEvent) => {
+      e.stopPropagation();
+      if (!profileUser.avatar) return;
+
+      // Get profile album photos
+      const profileAlbum = albums.find(a => a.type === 'profile');
+      let images: string[] = [];
+      
+      if (profileAlbum && profileAlbum.photos.length > 0) {
+          images = profileAlbum.photos.map(p => p.url);
+      } else {
+          images = [profileUser.avatar];
+      }
+
+      setProfileImagesList(images);
+      handleOpenLightbox(profileUser.avatar);
+  };
+
+  // Specific handler for Cover Photo click
+  const handleViewCover = (e: React.MouseEvent) => {
+      e.stopPropagation();
+      if (!profileUser.coverPhoto) return;
+
+      // Get cover album photos
+      const coverAlbum = albums.find(a => a.type === 'cover');
+      let images: string[] = [];
+
+      if (coverAlbum && coverAlbum.photos.length > 0) {
+          images = coverAlbum.photos.map(p => p.url);
+      } else {
+          images = [profileUser.coverPhoto];
+      }
+
+      setProfileImagesList(images);
+      handleOpenLightbox(profileUser.coverPhoto);
+  };
+
+  const handleNextImage = (e: React.MouseEvent) => {
+      e.stopPropagation();
+      if (!viewingImage || profileImagesList.length <= 1) return;
+      
+      const currentIndex = profileImagesList.indexOf(viewingImage);
+      // If current image is not in list (e.g. freshly uploaded), start from 0
+      const startIdx = currentIndex === -1 ? 0 : currentIndex;
+      const nextIndex = (startIdx + 1) % profileImagesList.length;
+      
+      setViewingImage(profileImagesList[nextIndex]);
+      
+      // Reset interactions for new image
+      setIsLiked(false);
+      setCommentsList([]);
+  };
+
+  const handlePrevImage = (e: React.MouseEvent) => {
+      e.stopPropagation();
+      if (!viewingImage || profileImagesList.length <= 1) return;
+
+      const currentIndex = profileImagesList.indexOf(viewingImage);
+      const startIdx = currentIndex === -1 ? 0 : currentIndex;
+      const prevIndex = (startIdx - 1 + profileImagesList.length) % profileImagesList.length;
+      
+      setViewingImage(profileImagesList[prevIndex]);
+
+      // Reset interactions for new image
+      setIsLiked(false);
+      setCommentsList([]);
+  };
+
   const handleLike = () => {
       setIsLiked(!isLiked);
       setLikesCount(prev => isLiked ? prev - 1 : prev + 1);
@@ -283,7 +362,7 @@ const Profile: React.FC<ProfileProps> = ({
         {/* Cover Photo - Clickable */}
         <div 
             className="relative h-[200px] md:h-[350px] w-full rounded-b-xl overflow-hidden bg-gray-300 group cursor-pointer"
-            onClick={() => profileUser.coverPhoto && setViewingImage(profileUser.coverPhoto)}
+            onClick={handleViewCover}
         >
           {profileUser.coverPhoto ? (
                <img
@@ -315,7 +394,7 @@ const Profile: React.FC<ProfileProps> = ({
              <div className="relative z-10">
                 <div 
                     className="h-32 w-32 md:h-40 md:w-40 rounded-full border-4 border-white overflow-hidden bg-white shadow-md flex items-center justify-center cursor-pointer group"
-                    onClick={() => setViewingImage(profileUser.avatar)}
+                    onClick={handleViewAvatar}
                 >
                     <img src={profileUser.avatar} alt={profileUser.name} className="w-full h-full object-cover group-hover:brightness-95 transition" />
                 </div>
@@ -627,9 +706,11 @@ const Profile: React.FC<ProfileProps> = ({
                         <X className="w-6 h-6" />
                     </button>
 
-                    <button className="absolute right-4 top-1/2 -translate-y-1/2 p-3 bg-black/50 hover:bg-white/20 rounded-full text-white z-10 opacity-50 cursor-not-allowed">
-                        <ChevronRight className="w-8 h-8" />
-                    </button>
+                    {profileImagesList.length > 1 && (
+                        <button className="absolute right-4 top-1/2 -translate-y-1/2 p-3 bg-black/50 hover:bg-white/20 rounded-full text-white z-10 transition hover:scale-110" onClick={handlePrevImage}>
+                            <ChevronRight className="w-8 h-8" />
+                        </button>
+                    )}
 
                     <img 
                         src={viewingImage} 
@@ -637,9 +718,11 @@ const Profile: React.FC<ProfileProps> = ({
                         alt="Profile Full screen" 
                     />
 
-                    <button className="absolute left-4 top-1/2 -translate-y-1/2 p-3 bg-black/50 hover:bg-white/20 rounded-full text-white z-10 opacity-50 cursor-not-allowed">
-                        <ChevronLeft className="w-8 h-8" />
-                    </button>
+                    {profileImagesList.length > 1 && (
+                        <button className="absolute left-4 top-1/2 -translate-y-1/2 p-3 bg-black/50 hover:bg-white/20 rounded-full text-white z-10 transition hover:scale-110" onClick={handleNextImage}>
+                            <ChevronLeft className="w-8 h-8" />
+                        </button>
+                    )}
                </div>
 
                {/* Sidebar Section */}

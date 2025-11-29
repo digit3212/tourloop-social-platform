@@ -67,6 +67,6 @@ export interface Album {
   photos: Photo[];
 }
 
-export type View = 'home' | 'profile' | 'friends' | 'watch' | 'marketplace' | 'saved' | 'profile_videos';
+export type View = 'home' | 'profile' | 'friends' | 'watch' | 'marketplace' | 'saved' | 'profile_videos' | 'gaming';
 
 export type TabType = 'posts' | 'about' | 'friends' | 'photos' | 'videos' | 'groups' | 'pages' | 'events';

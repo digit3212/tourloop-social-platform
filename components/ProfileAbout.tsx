@@ -1,8 +1,8 @@
 
-
 import React, { useState, useEffect, useRef } from 'react';
 import { Briefcase, GraduationCap, MapPin, Heart, Phone, Info, Clock, Globe, Plus, Save, X, Trash2, Users, Lock, ChevronDown, Home, Mail, Link as LinkIcon, Calendar, User as UserIcon, Languages, Mic, Quote, Droplet, PenLine, Star, Pen, Facebook, Instagram, Twitter, Linkedin, Youtube, Github, MessageCircle, Twitch } from 'lucide-react';
 import { User } from '../types';
+import { useLanguage } from '../context/LanguageContext';
 
 interface ProfileAboutProps {
   currentUser: User;
@@ -184,13 +184,15 @@ interface PrivacySelectProps {
 }
 
 const PrivacySelect: React.FC<PrivacySelectProps> = ({ value, onChange, small }) => {
+  const { t } = useLanguage(); // Hook for translation
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const options: { val: PrivacyLevel; label: string; icon: React.ElementType }[] = [
-    { val: 'public', label: 'عام', icon: Globe },
-    { val: 'friends', label: 'الأصدقاء', icon: Users },
-    { val: 'only_me', label: 'أنا فقط', icon: Lock },
+    { val: 'public', label: t.dir === 'rtl' ? 'عام' : 'Public', icon: Globe },
+    { val: 'friends', label: t.dir === 'rtl' ? 'الأصدقاء' : 'Friends', icon: Users },
+    { val: 'friends_of_friends', label: t.dir === 'rtl' ? 'أصدقاءالأصدقاء' : 'friends_of_friends', icon: Users },
+    { val: 'only_me', label: t.dir === 'rtl' ? 'أنا فقط' : 'Only Me', icon: Lock },
   ];
 
   const selected = options.find((o) => o.val === value) || options[0];
@@ -243,9 +245,10 @@ const PrivacySelect: React.FC<PrivacySelectProps> = ({ value, onChange, small })
 
 // --- Helper to render Privacy Icon only ---
 const PrivacyIcon: React.FC<{ type: PrivacyLevel }> = ({ type }) => {
-    if (type === 'public') return <span title="عام" className="inline-flex items-center"><Globe className="w-3.5 h-3.5 text-fb-blue/70" /></span>;
-    if (type === 'friends') return <span title="الأصدقاء" className="inline-flex items-center"><Users className="w-3.5 h-3.5 text-fb-blue/70" /></span>;
-    return <span title="أنا فقط" className="inline-flex items-center"><Lock className="w-3.5 h-3.5 text-fb-blue/70" /></span>;
+    const { t } = useLanguage();
+    if (type === 'public') return <span title={t.dir === 'rtl' ? 'عام' : 'Public'} className="inline-flex items-center"><Globe className="w-3.5 h-3.5 text-fb-blue/70" /></span>;
+    if (type === 'friends') return <span title={t.dir === 'rtl' ? 'الأصدقاء' : 'Friends'} className="inline-flex items-center"><Users className="w-3.5 h-3.5 text-fb-blue/70" /></span>;
+    return <span title={t.dir === 'rtl' ? 'أنا فقط' : 'Only Me'} className="inline-flex items-center"><Lock className="w-3.5 h-3.5 text-fb-blue/70" /></span>;
 };
 
 // --- Helper to render Platform Icon ---
@@ -265,6 +268,7 @@ const getPlatformIcon = (platform: string) => {
 
 
 const ProfileAbout: React.FC<ProfileAboutProps> = ({ currentUser, readonly = false }) => {
+  const { t } = useLanguage(); // Hook for translations
   const [activeSection, setActiveSection] = useState<SectionType>('overview');
 
   // --- Initial Empty State for All Sections ---
@@ -390,13 +394,13 @@ const ProfileAbout: React.FC<ProfileAboutProps> = ({ currentUser, readonly = fal
   ];
 
   const sections = [
-    { id: 'overview', label: 'نظرة عامة', icon: <Globe className="w-5 h-5" /> },
-    { id: 'work', label: 'العمل والتعليم', icon: <Briefcase className="w-5 h-5" /> },
-    { id: 'places', label: 'الأماكن التي عشت فيها', icon: <MapPin className="w-5 h-5" /> },
-    { id: 'contact', label: 'المعلومات الأساسية والاتصال', icon: <Phone className="w-5 h-5" /> },
-    { id: 'family', label: 'العائلة والعلاقات', icon: <Heart className="w-5 h-5" /> },
-    { id: 'details', label: 'تفاصيل عنك', icon: <Info className="w-5 h-5" /> },
-    { id: 'events', label: 'المناسبات الشخصية', icon: <Star className="w-5 h-5" /> },
+    { id: 'overview', label: t.about_overview, icon: <Globe className="w-5 h-5" /> },
+    { id: 'work', label: t.about_work_edu, icon: <Briefcase className="w-5 h-5" /> },
+    { id: 'places', label: t.about_places, icon: <MapPin className="w-5 h-5" /> },
+    { id: 'contact', label: t.about_contact, icon: <Phone className="w-5 h-5" /> },
+    { id: 'family', label: t.about_family, icon: <Heart className="w-5 h-5" /> },
+    { id: 'details', label: t.about_details, icon: <Info className="w-5 h-5" /> },
+    { id: 'events', label: t.about_events, icon: <Star className="w-5 h-5" /> },
   ];
 
   // --- Handlers ---
@@ -635,9 +639,9 @@ const ProfileAbout: React.FC<ProfileAboutProps> = ({ currentUser, readonly = fal
                 <div key={work.id} className="flex items-center gap-3">
                   <Briefcase className="w-6 h-6 text-fb-blue" />
                   <div>
-                    <span className="text-fb-blue font-medium">يعمل </span>
+                    <span className="text-fb-blue font-medium">{t.work_works_at} </span>
                     <span className="font-bold text-fb-blue">{work.role}</span>
-                    <span className="text-fb-blue font-medium"> لدى </span>
+                    <span className="text-fb-blue font-medium"> {t.work_role_at} </span>
                     <span className="font-bold text-fb-blue">{work.company}</span>
                   </div>
                 </div>
@@ -648,9 +652,9 @@ const ProfileAbout: React.FC<ProfileAboutProps> = ({ currentUser, readonly = fal
                 <div key={uni.id} className="flex items-center gap-3">
                   <GraduationCap className="w-6 h-6 text-fb-blue" />
                   <div>
-                    <span className="text-fb-blue font-medium">درس </span>
+                    <span className="text-fb-blue font-medium">{t.edu_studied} </span>
                     <span className="font-bold text-fb-blue">{uni.major}</span>
-                    <span className="text-fb-blue font-medium"> في </span>
+                    <span className="text-fb-blue font-medium"> {t.edu_at} </span>
                     <span className="font-bold text-fb-blue">{uni.name}</span>
                     {uni.degree && <span className="text-fb-blue font-medium"> ({uni.degree})</span>}
                   </div>
@@ -662,9 +666,9 @@ const ProfileAbout: React.FC<ProfileAboutProps> = ({ currentUser, readonly = fal
                 <div key={school.id} className="flex items-center gap-3">
                   <GraduationCap className="w-6 h-6 text-fb-blue" />
                   <div>
-                    <span className="text-fb-blue font-medium">درس في </span>
+                    <span className="text-fb-blue font-medium">{t.edu_school} </span>
                     <span className="font-bold text-fb-blue">{school.name}</span>
-                    {school.year && <span className="text-fb-blue font-medium"> تخرج عام {school.year}</span>}
+                    {school.year && <span className="text-fb-blue font-medium"> {t.edu_graduated} {school.year}</span>}
                   </div>
                 </div>
             ))}
@@ -674,7 +678,7 @@ const ProfileAbout: React.FC<ProfileAboutProps> = ({ currentUser, readonly = fal
                 <div key={place.id} className="flex items-center gap-3">
                   {place.type === 'current' ? <Home className="w-6 h-6 text-fb-blue" /> : <MapPin className="w-6 h-6 text-fb-blue" />}
                   <div>
-                    <span className="text-fb-blue font-medium">{place.type === 'current' ? 'يقيم في ' : 'من '}</span>
+                    <span className="text-fb-blue font-medium">{place.type === 'current' ? t.place_lives : t.place_from} </span>
                     <span className="font-bold text-fb-blue">{place.city}, {place.country}</span>
                   </div>
                 </div>
@@ -686,8 +690,8 @@ const ProfileAbout: React.FC<ProfileAboutProps> = ({ currentUser, readonly = fal
                     <Heart className="w-6 h-6 text-fb-blue" />
                     <div>
                         <span className="font-bold text-fb-blue">{relationship.status}</span>
-                        {relationship.partner && <span className="text-fb-blue font-medium"> مع <span className="font-bold text-fb-blue">{relationship.partner}</span></span>}
-                        {relationship.year && <span className="text-fb-blue font-medium"> منذ {relationship.year}</span>}
+                        {relationship.partner && <span className="text-fb-blue font-medium"> {t.dir === 'rtl' ? 'مع' : 'with'} <span className="font-bold text-fb-blue">{relationship.partner}</span></span>}
+                        {relationship.year && <span className="text-fb-blue font-medium"> {t.dir === 'rtl' ? 'منذ' : 'since'} {relationship.year}</span>}
                     </div>
                 </div>
             )}
@@ -695,7 +699,7 @@ const ProfileAbout: React.FC<ProfileAboutProps> = ({ currentUser, readonly = fal
             {/* Family */}
             {familyMembers.length > 0 && (
                <div className="border-t pt-4 mt-2">
-                   <h5 className="font-bold mb-2 text-gray-900">أفراد العائلة</h5>
+                   <h5 className="font-bold mb-2 text-gray-900">{t.family_members}</h5>
                    {familyMembers.map(member => (
                        <div key={member.id} className="flex items-center gap-3 mb-2">
                            <UserIcon className="w-5 h-5 text-fb-blue" />
@@ -707,12 +711,12 @@ const ProfileAbout: React.FC<ProfileAboutProps> = ({ currentUser, readonly = fal
 
             {/* Contact Info Group */}
             <div className="border-t pt-4 mt-2">
-                <h5 className="font-bold mb-2 text-gray-900">معلومات الاتصال</h5>
+                <h5 className="font-bold mb-2 text-gray-900">{t.about_contact}</h5>
                 {contactInfo.mobile.value && (
                      <div className="flex items-center gap-3 mb-2">
                         <Phone className="w-5 h-5 text-fb-blue" />
                         <span dir="ltr" className="text-fb-blue font-bold">{contactInfo.mobile.value}</span>
-                        <span className="text-xs text-fb-blue font-medium">موبايل</span>
+                        <span className="text-xs text-fb-blue font-medium">{t.contact_mobile}</span>
                     </div>
                 )}
                 {contactInfo.email.value && (
@@ -737,7 +741,7 @@ const ProfileAbout: React.FC<ProfileAboutProps> = ({ currentUser, readonly = fal
 
             {/* Basic Info Group */}
             <div className="border-t pt-4 mt-2">
-                <h5 className="font-bold mb-2 text-gray-900">معلومات أساسية</h5>
+                <h5 className="font-bold mb-2 text-gray-900">{t.about_contact}</h5>
                 {basicInfo.gender.value && (
                      <div className="flex items-center gap-3 mb-2">
                         <UserIcon className="w-5 h-5 text-fb-blue" />
@@ -761,11 +765,11 @@ const ProfileAbout: React.FC<ProfileAboutProps> = ({ currentUser, readonly = fal
             {/* Other Details */}
              {(pronunciation.text || otherNames.length > 0 || quotes.text) && (
                   <div className="border-t pt-4 mt-2">
-                       <h5 className="font-bold mb-2 text-gray-900">تفاصيل أخرى</h5>
+                       <h5 className="font-bold mb-2 text-gray-900">{t.about_details}</h5>
                        {pronunciation.text && (
                            <div className="flex items-center gap-3 mb-2">
                                <Mic className="w-5 h-5 text-fb-blue" />
-                               <span className="text-fb-blue font-bold">ينطق: {pronunciation.text}</span>
+                               <span className="text-fb-blue font-bold">{t.details_pronounce}: {pronunciation.text}</span>
                            </div>
                        )}
                        {otherNames.map(n => (
@@ -785,7 +789,7 @@ const ProfileAbout: React.FC<ProfileAboutProps> = ({ currentUser, readonly = fal
              
              {lifeEvents.length > 0 && (
                  <div className="border-t pt-4 mt-2">
-                      <h5 className="font-bold mb-2 text-gray-900">مناسبات شخصية</h5>
+                      <h5 className="font-bold mb-2 text-gray-900">{t.about_events}</h5>
                       {lifeEvents.map(ev => (
                           <div key={ev.id} className="flex items-center gap-3 mb-3">
                                <Star className="w-5 h-5 text-fb-blue" />
@@ -801,7 +805,7 @@ const ProfileAbout: React.FC<ProfileAboutProps> = ({ currentUser, readonly = fal
              {!hasDetails && (
                 <div className="text-gray-500 text-center py-10 flex flex-col items-center">
                     <Info className="w-10 h-10 mb-2 text-gray-300" />
-                    <p>لا توجد تفاصيل لعرضها في النظرة العامة.</p>
+                    <p>{t.no_details}</p>
                 </div>
             )}
           </div>
@@ -811,7 +815,7 @@ const ProfileAbout: React.FC<ProfileAboutProps> = ({ currentUser, readonly = fal
           <div className="space-y-8 animate-fadeIn">
             {/* Work Section */}
             <div>
-              <h4 className="font-bold text-[19px] mb-4 text-gray-900">العمل</h4>
+              <h4 className="font-bold text-[19px] mb-4 text-gray-900">{t.about_work_edu}</h4>
               
               {works.map((work) => (
                 <div key={work.id} className="flex items-start gap-4 mb-4 group relative">
@@ -847,30 +851,30 @@ const ProfileAbout: React.FC<ProfileAboutProps> = ({ currentUser, readonly = fal
                   className="flex items-center gap-2 text-fb-blue hover:underline text-[15px] font-bold mt-2"
                 >
                     <Plus className="w-6 h-6 rounded-full bg-blue-50 p-1" />
-                    <span>إضافة مكان عمل</span>
+                    <span>{t.empty_work}</span>
                 </button>
               ) : (
                 <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 mt-4 fade-in">
                   <div className="space-y-3">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">المسمى الوظيفي</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">{t.ph_position}</label>
                       <select 
                         className="w-full border border-gray-300 rounded-md p-2 text-sm bg-white focus:ring-2 focus:ring-fb-blue focus:border-transparent outline-none"
                         value={newWork.role}
                         onChange={(e) => setNewWork({...newWork, role: e.target.value})}
                       >
-                        <option value="">اختر المسمى الوظيفي...</option>
+                        <option value="">{t.ph_position}...</option>
                         {jobTitles.map(title => (
                           <option key={title} value={title}>{title}</option>
                         ))}
                       </select>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">الشركة / المؤسسة</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">{t.ph_company}</label>
                       <input 
                         type="text" 
                         className="w-full border border-gray-300 rounded-md p-2 text-sm focus:ring-2 focus:ring-fb-blue focus:border-transparent outline-none"
-                        placeholder="اسم الشركة"
+                        placeholder={t.ph_company}
                         value={newWork.company}
                         onChange={(e) => setNewWork({...newWork, company: e.target.value})}
                       />
@@ -886,12 +890,12 @@ const ProfileAbout: React.FC<ProfileAboutProps> = ({ currentUser, readonly = fal
                     <div className="flex items-center justify-between pt-2 border-t border-gray-200 mt-3">
                       {editingWorkId ? (
                            <button onClick={() => { deleteItem('work', editingWorkId); setShowWorkForm(false); setEditingWorkId(null); }} className="px-3 py-1.5 text-red-600 hover:bg-red-50 rounded-md text-sm font-semibold flex items-center gap-1">
-                               <Trash2 className="w-4 h-4" /> حذف
+                               <Trash2 className="w-4 h-4" /> {t.btn_delete}
                            </button>
                       ) : <div></div>}
                       <div className="flex gap-2">
-                          <button onClick={() => setShowWorkForm(false)} className="px-3 py-1.5 text-gray-600 hover:bg-gray-200 rounded-md text-sm font-semibold">إلغاء</button>
-                          <button onClick={handleSaveWork} disabled={!newWork.role || !newWork.company} className="px-4 py-1.5 bg-fb-blue text-white rounded-md text-sm font-semibold hover:bg-blue-700 disabled:opacity-50">حفظ</button>
+                          <button onClick={() => setShowWorkForm(false)} className="px-3 py-1.5 text-gray-600 hover:bg-gray-200 rounded-md text-sm font-semibold">{t.btn_cancel}</button>
+                          <button onClick={handleSaveWork} disabled={!newWork.role || !newWork.company} className="px-4 py-1.5 bg-fb-blue text-white rounded-md text-sm font-semibold hover:bg-blue-700 disabled:opacity-50">{t.btn_save}</button>
                       </div>
                     </div>
                   </div>
@@ -903,7 +907,7 @@ const ProfileAbout: React.FC<ProfileAboutProps> = ({ currentUser, readonly = fal
 
             {/* University Section */}
             <div>
-              <h4 className="font-bold text-[19px] mb-4 text-gray-900">الجامعة / الكلية</h4>
+              <h4 className="font-bold text-[19px] mb-4 text-gray-900">{t.empty_uni}</h4>
               
               {universities.map((uni) => (
                 <div key={uni.id} className="flex items-start gap-4 mb-4 group relative">
@@ -913,7 +917,7 @@ const ProfileAbout: React.FC<ProfileAboutProps> = ({ currentUser, readonly = fal
                     <div className="flex-1">
                         <div className="text-[16px] font-bold text-fb-blue">{uni.name}</div>
                         <div className="text-fb-blue font-medium text-[14px] flex items-center gap-2 flex-wrap">
-                          {uni.degree} · {uni.major} {uni.year && `· دفعة ${uni.year}`}
+                          {uni.degree} · {uni.major} {uni.year && `· ${t.edu_graduated} ${uni.year}`}
                           <span aria-hidden="true">·</span>
                           <PrivacyIcon type={uni.privacy} />
                         </div>
@@ -939,14 +943,14 @@ const ProfileAbout: React.FC<ProfileAboutProps> = ({ currentUser, readonly = fal
                   className="flex items-center gap-2 text-fb-blue hover:underline text-[15px] font-bold mt-2"
                 >
                     <Plus className="w-6 h-6 rounded-full bg-blue-50 p-1" />
-                    <span>إضافة كلية / جامعة</span>
+                    <span>{t.empty_uni}</span>
                 </button>
               ) : (
                 <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 mt-4 fade-in">
                   {/* ... Uni form inputs ... */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     <div className="md:col-span-2">
-                       <label className="block text-sm font-medium text-gray-700 mb-1">اسم الجامعة / الكلية</label>
+                       <label className="block text-sm font-medium text-gray-700 mb-1">{t.ph_university}</label>
                        <input 
                         type="text" 
                         className="w-full border border-gray-300 rounded-md p-2 text-sm focus:ring-2 focus:ring-fb-blue focus:border-transparent outline-none"
@@ -966,7 +970,7 @@ const ProfileAbout: React.FC<ProfileAboutProps> = ({ currentUser, readonly = fal
                       </select>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">سنة التخرج</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">{t.edu_graduated}</label>
                       <input 
                         type="number" 
                         placeholder="YYYY"
@@ -997,12 +1001,12 @@ const ProfileAbout: React.FC<ProfileAboutProps> = ({ currentUser, readonly = fal
                   <div className="flex items-center justify-between pt-3 border-t border-gray-200 mt-3">
                       {editingUniId ? (
                            <button onClick={() => { deleteItem('uni', editingUniId); setShowUniForm(false); setEditingUniId(null); }} className="px-3 py-1.5 text-red-600 hover:bg-red-50 rounded-md text-sm font-semibold flex items-center gap-1">
-                               <Trash2 className="w-4 h-4" /> حذف
+                               <Trash2 className="w-4 h-4" /> {t.btn_delete}
                            </button>
                       ) : <div></div>}
                       <div className="flex gap-2">
-                          <button onClick={() => setShowUniForm(false)} className="px-3 py-1.5 text-gray-600 hover:bg-gray-200 rounded-md text-sm font-semibold">إلغاء</button>
-                          <button onClick={handleSaveUni} disabled={!newUni.name || !newUni.degree} className="px-4 py-1.5 bg-fb-blue text-white rounded-md text-sm font-semibold hover:bg-blue-700 disabled:opacity-50">حفظ</button>
+                          <button onClick={() => setShowUniForm(false)} className="px-3 py-1.5 text-gray-600 hover:bg-gray-200 rounded-md text-sm font-semibold">{t.btn_cancel}</button>
+                          <button onClick={handleSaveUni} disabled={!newUni.name || !newUni.degree} className="px-4 py-1.5 bg-fb-blue text-white rounded-md text-sm font-semibold hover:bg-blue-700 disabled:opacity-50">{t.btn_save}</button>
                       </div>
                   </div>
                 </div>
@@ -1013,7 +1017,7 @@ const ProfileAbout: React.FC<ProfileAboutProps> = ({ currentUser, readonly = fal
 
              {/* High School Section */}
              <div>
-              <h4 className="font-bold text-[19px] mb-4 text-gray-900">المدرسة الثانوية</h4>
+              <h4 className="font-bold text-[19px] mb-4 text-gray-900">{t.empty_school}</h4>
               
               {schools.map((school) => (
                 <div key={school.id} className="flex items-start gap-4 mb-4 group relative">
@@ -1023,7 +1027,7 @@ const ProfileAbout: React.FC<ProfileAboutProps> = ({ currentUser, readonly = fal
                     <div className="flex-1">
                         <div className="text-[16px] font-bold text-fb-blue">{school.name}</div>
                         <div className="text-fb-blue font-medium text-[14px] flex items-center gap-2">
-                           {school.year ? `دفعة ${school.year}` : 'مدرسة ثانوية'}
+                           {school.year ? `${t.edu_graduated} ${school.year}` : t.empty_school}
                            <span aria-hidden="true">·</span>
                            <PrivacyIcon type={school.privacy} />
                         </div>
@@ -1049,13 +1053,13 @@ const ProfileAbout: React.FC<ProfileAboutProps> = ({ currentUser, readonly = fal
                   className="flex items-center gap-2 text-fb-blue hover:underline text-[15px] font-bold mt-2"
                 >
                     <Plus className="w-6 h-6 rounded-full bg-blue-50 p-1" />
-                    <span>إضافة مدرسة ثانوية</span>
+                    <span>{t.empty_school}</span>
                 </button>
               ) : (
                 <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 mt-4 fade-in">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     <div className="md:col-span-2">
-                       <label className="block text-sm font-medium text-gray-700 mb-1">اسم المدرسة</label>
+                       <label className="block text-sm font-medium text-gray-700 mb-1">{t.ph_school}</label>
                        <input 
                         type="text" 
                         className="w-full border border-gray-300 rounded-md p-2 text-sm focus:ring-2 focus:ring-fb-blue focus:border-transparent outline-none"
@@ -1064,7 +1068,7 @@ const ProfileAbout: React.FC<ProfileAboutProps> = ({ currentUser, readonly = fal
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">سنة التخرج</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">{t.edu_graduated}</label>
                       <input 
                         type="number" 
                         placeholder="YYYY"
@@ -1085,12 +1089,12 @@ const ProfileAbout: React.FC<ProfileAboutProps> = ({ currentUser, readonly = fal
                   <div className="flex items-center justify-between pt-3 border-t border-gray-200 mt-3">
                       {editingSchoolId ? (
                            <button onClick={() => { deleteItem('school', editingSchoolId); setShowSchoolForm(false); setEditingSchoolId(null); }} className="px-3 py-1.5 text-red-600 hover:bg-red-50 rounded-md text-sm font-semibold flex items-center gap-1">
-                               <Trash2 className="w-4 h-4" /> حذف
+                               <Trash2 className="w-4 h-4" /> {t.btn_delete}
                            </button>
                       ) : <div></div>}
                       <div className="flex gap-2">
-                          <button onClick={() => setShowSchoolForm(false)} className="px-3 py-1.5 text-gray-600 hover:bg-gray-200 rounded-md text-sm font-semibold">إلغاء</button>
-                          <button onClick={handleSaveSchool} disabled={!newSchool.name} className="px-4 py-1.5 bg-fb-blue text-white rounded-md text-sm font-semibold hover:bg-blue-700 disabled:opacity-50">حفظ</button>
+                          <button onClick={() => setShowSchoolForm(false)} className="px-3 py-1.5 text-gray-600 hover:bg-gray-200 rounded-md text-sm font-semibold">{t.btn_cancel}</button>
+                          <button onClick={handleSaveSchool} disabled={!newSchool.name} className="px-4 py-1.5 bg-fb-blue text-white rounded-md text-sm font-semibold hover:bg-blue-700 disabled:opacity-50">{t.btn_save}</button>
                       </div>
                   </div>
                 </div>
@@ -1120,14 +1124,14 @@ const ProfileAbout: React.FC<ProfileAboutProps> = ({ currentUser, readonly = fal
                       </select>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">المدينة</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">{t.ph_city}</label>
                        <select 
                         className="w-full border border-gray-300 rounded-md p-2 text-sm bg-white focus:ring-2 focus:ring-fb-blue focus:border-transparent outline-none disabled:bg-gray-200"
                         value={newPlace.city}
                         onChange={(e) => setNewPlace({...newPlace, city: e.target.value})}
                         disabled={!newPlace.country}
                       >
-                        <option value="">اختر المدينة...</option>
+                        <option value="">{t.ph_city}...</option>
                         {newPlace.country && COUNTRIES_DATA[newPlace.country]?.map(city => (
                           <option key={city} value={city}>{city}</option>
                         ))}
@@ -1145,12 +1149,12 @@ const ProfileAbout: React.FC<ProfileAboutProps> = ({ currentUser, readonly = fal
                       {/* Check if place exists to show delete */}
                       {places.find(p => p.type === type) ? (
                            <button onClick={() => { deleteItem('place', places.find(p => p.type === type)!.id); setEditingPlaceType(null); }} className="px-3 py-1.5 text-red-600 hover:bg-red-50 rounded-md text-sm font-semibold flex items-center gap-1">
-                               <Trash2 className="w-4 h-4" /> حذف
+                               <Trash2 className="w-4 h-4" /> {t.btn_delete}
                            </button>
                       ) : <div></div>}
                       <div className="flex gap-2">
-                        <button onClick={() => { setEditingPlaceType(null); setNewPlace({country: '', city: '', privacy: 'public'}); }} className="px-3 py-1.5 text-gray-600 hover:bg-gray-200 rounded-md text-sm font-semibold">إلغاء</button>
-                        <button onClick={handleSavePlace} disabled={!newPlace.country || !newPlace.city} className="px-4 py-1.5 bg-fb-blue text-white rounded-md text-sm font-semibold hover:bg-blue-700 disabled:opacity-50">حفظ</button>
+                        <button onClick={() => { setEditingPlaceType(null); setNewPlace({country: '', city: '', privacy: 'public'}); }} className="px-3 py-1.5 text-gray-600 hover:bg-gray-200 rounded-md text-sm font-semibold">{t.btn_cancel}</button>
+                        <button onClick={handleSavePlace} disabled={!newPlace.country || !newPlace.city} className="px-4 py-1.5 bg-fb-blue text-white rounded-md text-sm font-semibold hover:bg-blue-700 disabled:opacity-50">{t.btn_save}</button>
                       </div>
                     </div>
                   </div>
@@ -1159,7 +1163,7 @@ const ProfileAbout: React.FC<ProfileAboutProps> = ({ currentUser, readonly = fal
 
         return (
            <div className="space-y-6 animate-fadeIn">
-              <h4 className="font-bold text-[19px] mb-2 text-gray-900">الأماكن التي عشت فيها</h4>
+              <h4 className="font-bold text-[19px] mb-2 text-gray-900">{t.about_places}</h4>
               
               {/* Current City Section */}
               <div className="mb-4">
@@ -1171,7 +1175,7 @@ const ProfileAbout: React.FC<ProfileAboutProps> = ({ currentUser, readonly = fal
                         <div className="flex-1">
                             <div className="text-[16px] font-bold text-fb-blue">{currentCity.city}, {currentCity.country}</div>
                             <div className="text-fb-blue font-medium text-[14px] flex items-center gap-2">
-                                المدينة الحالية
+                                {t.place_current}
                                 <span aria-hidden="true">·</span>
                                 <PrivacyIcon type={currentCity.privacy} />
                             </div>
@@ -1192,7 +1196,7 @@ const ProfileAbout: React.FC<ProfileAboutProps> = ({ currentUser, readonly = fal
                             className="flex items-center gap-2 text-fb-blue hover:underline text-[15px] font-bold"
                            >
                                 <Plus className="w-6 h-6 rounded-full bg-blue-50 p-1" />
-                                <span>إضافة مدينة حالية</span>
+                                <span>{t.empty_current_city}</span>
                            </button>
                        )
                   ) : renderPlaceForm('current')}
@@ -1208,7 +1212,7 @@ const ProfileAbout: React.FC<ProfileAboutProps> = ({ currentUser, readonly = fal
                         <div className="flex-1">
                             <div className="text-[16px] font-bold text-fb-blue">{hometown.city}, {hometown.country}</div>
                             <div className="text-fb-blue font-medium text-[14px] flex items-center gap-2">
-                                المنشأ
+                                {t.place_hometown}
                                 <span aria-hidden="true">·</span>
                                 <PrivacyIcon type={hometown.privacy} />
                             </div>
@@ -1229,7 +1233,7 @@ const ProfileAbout: React.FC<ProfileAboutProps> = ({ currentUser, readonly = fal
                             className="flex items-center gap-2 text-fb-blue hover:underline text-[15px] font-bold"
                            >
                                 <Plus className="w-6 h-6 rounded-full bg-blue-50 p-1" />
-                                <span>إضافة منشأ</span>
+                                <span>{t.empty_hometown}</span>
                            </button>
                        )
                   ) : renderPlaceForm('hometown')}
@@ -1241,13 +1245,13 @@ const ProfileAbout: React.FC<ProfileAboutProps> = ({ currentUser, readonly = fal
             <div className="space-y-8 animate-fadeIn">
                 {/* Contact Info */}
                 <div>
-                    <h4 className="font-bold text-[17px] mb-4 text-gray-900">معلومات الاتصال</h4>
+                    <h4 className="font-bold text-[17px] mb-4 text-gray-900">{t.about_contact}</h4>
                     
                     {/* Mobile */}
                     <div className="mb-4 group">
                         {editingContact === 'mobile' ? (
                             <div className="bg-gray-50 p-3 rounded-lg border border-gray-200">
-                                <label className="text-xs text-gray-500 mb-1 block">رقم الهاتف</label>
+                                <label className="text-xs text-gray-500 mb-1 block">{t.contact_mobile}</label>
                                 <input 
                                     type="text" 
                                     className="w-full border p-2 rounded mb-2 text-sm" 
@@ -1257,8 +1261,8 @@ const ProfileAbout: React.FC<ProfileAboutProps> = ({ currentUser, readonly = fal
                                 <div className="flex justify-between items-center">
                                     <PrivacySelect value={tempContact.privacy} onChange={(val) => setTempContact({...tempContact, privacy: val})} small />
                                     <div className="flex gap-2">
-                                        <button onClick={() => setEditingContact(null)} className="text-xs font-semibold px-2 py-1 bg-gray-200 rounded">إلغاء</button>
-                                        <button onClick={() => handleSaveContact('mobile')} className="text-xs font-semibold px-2 py-1 bg-fb-blue text-white rounded">حفظ</button>
+                                        <button onClick={() => setEditingContact(null)} className="text-xs font-semibold px-2 py-1 bg-gray-200 rounded">{t.btn_cancel}</button>
+                                        <button onClick={() => handleSaveContact('mobile')} className="text-xs font-semibold px-2 py-1 bg-fb-blue text-white rounded">{t.btn_save}</button>
                                     </div>
                                 </div>
                             </div>
@@ -1274,7 +1278,7 @@ const ProfileAbout: React.FC<ProfileAboutProps> = ({ currentUser, readonly = fal
                                             >
                                                 {contactInfo.mobile.value}
                                             </div>
-                                            <div className="text-xs text-fb-blue font-medium flex items-center gap-1">هاتف محمول <span aria-hidden="true">·</span> <PrivacyIcon type={contactInfo.mobile.privacy} /></div>
+                                            <div className="text-xs text-fb-blue font-medium flex items-center gap-1">{t.contact_mobile} <span aria-hidden="true">·</span> <PrivacyIcon type={contactInfo.mobile.privacy} /></div>
                                         </>
                                     ) : (
                                         !readonly ? (
@@ -1282,10 +1286,10 @@ const ProfileAbout: React.FC<ProfileAboutProps> = ({ currentUser, readonly = fal
                                                 onClick={() => { setTempContact(contactInfo.mobile); setEditingContact('mobile'); }} 
                                                 className="text-[15px] text-fb-blue font-bold hover:underline"
                                             >
-                                                إضافة رقم هاتف
+                                                {t.empty_mobile}
                                             </button>
                                         ) : (
-                                            <div className="text-[15px] text-gray-400 italic">لا يوجد رقم هاتف</div>
+                                            <div className="text-[15px] text-gray-400 italic">{t.no_mobile}</div>
                                         )
                                     )}
                                 </div>
@@ -1297,7 +1301,7 @@ const ProfileAbout: React.FC<ProfileAboutProps> = ({ currentUser, readonly = fal
                     <div className="mb-4 group">
                          {editingContact === 'email' ? (
                             <div className="bg-gray-50 p-3 rounded-lg border border-gray-200">
-                                <label className="text-xs text-gray-500 mb-1 block">البريد الإلكتروني</label>
+                                <label className="text-xs text-gray-500 mb-1 block">{t.contact_email}</label>
                                 <input 
                                     type="text" 
                                     className="w-full border p-2 rounded mb-2 text-sm" 
@@ -1307,8 +1311,8 @@ const ProfileAbout: React.FC<ProfileAboutProps> = ({ currentUser, readonly = fal
                                 <div className="flex justify-between items-center">
                                     <PrivacySelect value={tempContact.privacy} onChange={(val) => setTempContact({...tempContact, privacy: val})} small />
                                     <div className="flex gap-2">
-                                        <button onClick={() => setEditingContact(null)} className="text-xs font-semibold px-2 py-1 bg-gray-200 rounded">إلغاء</button>
-                                        <button onClick={() => handleSaveContact('email')} className="text-xs font-semibold px-2 py-1 bg-fb-blue text-white rounded">حفظ</button>
+                                        <button onClick={() => setEditingContact(null)} className="text-xs font-semibold px-2 py-1 bg-gray-200 rounded">{t.btn_cancel}</button>
+                                        <button onClick={() => handleSaveContact('email')} className="text-xs font-semibold px-2 py-1 bg-fb-blue text-white rounded">{t.btn_save}</button>
                                     </div>
                                 </div>
                             </div>
@@ -1324,7 +1328,7 @@ const ProfileAbout: React.FC<ProfileAboutProps> = ({ currentUser, readonly = fal
                                             >
                                                 {contactInfo.email.value}
                                             </div>
-                                            <div className="text-xs text-fb-blue font-medium flex items-center gap-1">البريد الإلكتروني <span aria-hidden="true">·</span> <PrivacyIcon type={contactInfo.email.privacy} /></div>
+                                            <div className="text-xs text-fb-blue font-medium flex items-center gap-1">{t.contact_email} <span aria-hidden="true">·</span> <PrivacyIcon type={contactInfo.email.privacy} /></div>
                                         </>
                                     ) : (
                                         !readonly ? (
@@ -1332,10 +1336,10 @@ const ProfileAbout: React.FC<ProfileAboutProps> = ({ currentUser, readonly = fal
                                                 onClick={() => { setTempContact(contactInfo.email); setEditingContact('email'); }} 
                                                 className="text-[15px] text-fb-blue font-bold hover:underline"
                                             >
-                                                إضافة بريد إلكتروني
+                                                {t.empty_email}
                                             </button>
                                         ) : (
-                                            <div className="text-[15px] text-gray-400 italic">لا يوجد بريد إلكتروني</div>
+                                            <div className="text-[15px] text-gray-400 italic">{t.no_email}</div>
                                         )
                                     )}
                                 </div>
@@ -1350,14 +1354,14 @@ const ProfileAbout: React.FC<ProfileAboutProps> = ({ currentUser, readonly = fal
                                 <LinkIcon className="w-5 h-5 text-fb-blue" />
                                 <div className="flex-1">
                                     <a href={site.url} target="_blank" rel="noreferrer" className="text-[15px] text-fb-blue hover:underline block truncate max-w-[200px] font-bold">{site.url}</a>
-                                    <div className="text-xs text-fb-blue font-medium flex items-center gap-1">موقع ويب <span aria-hidden="true">·</span> <PrivacyIcon type={site.privacy} /></div>
+                                    <div className="text-xs text-fb-blue font-medium flex items-center gap-1">{t.contact_website} <span aria-hidden="true">·</span> <PrivacyIcon type={site.privacy} /></div>
                                 </div>
                                 {!readonly && <button onClick={() => handleEditWebsite(site)} className="p-2 text-gray-500 hover:bg-gray-100 rounded-full"><Pen className="w-4 h-4" /></button>}
                             </div>
                         ))}
                         {showWebsiteForm ? (
                              <div className="bg-gray-50 p-3 rounded-lg border border-gray-200 mt-2">
-                                <label className="text-xs text-gray-500 mb-1 block">رابط الموقع (URL)</label>
+                                <label className="text-xs text-gray-500 mb-1 block">{t.contact_website}</label>
                                 <input type="text" className="w-full border p-2 rounded mb-2 text-sm text-left" placeholder="https://..." value={newWebsite.url} onChange={(e) => setNewWebsite({...newWebsite, url: e.target.value})} />
                                 <div className="flex justify-between items-center">
                                     <PrivacySelect value={newWebsite.privacy} onChange={(val) => setNewWebsite({...newWebsite, privacy: val})} small />
@@ -1365,18 +1369,18 @@ const ProfileAbout: React.FC<ProfileAboutProps> = ({ currentUser, readonly = fal
                                 </div>
                                 <div className="flex items-center justify-between pt-2 border-t border-gray-200 mt-2">
                                     {editingWebsiteId ? (
-                                        <button onClick={() => { deleteItem('website', editingWebsiteId); setShowWebsiteForm(false); setEditingWebsiteId(null); }} className="text-xs font-semibold px-2 py-1 text-red-500 hover:bg-red-50 rounded">حذف</button>
+                                        <button onClick={() => { deleteItem('website', editingWebsiteId); setShowWebsiteForm(false); setEditingWebsiteId(null); }} className="text-xs font-semibold px-2 py-1 text-red-500 hover:bg-red-50 rounded">{t.btn_delete}</button>
                                     ) : <div></div>}
                                     <div className="flex gap-2">
-                                        <button onClick={() => setShowWebsiteForm(false)} className="text-xs font-semibold px-2 py-1 bg-gray-200 rounded">إلغاء</button>
-                                        <button onClick={handleSaveWebsite} className="text-xs font-semibold px-2 py-1 bg-fb-blue text-white rounded">حفظ</button>
+                                        <button onClick={() => setShowWebsiteForm(false)} className="text-xs font-semibold px-2 py-1 bg-gray-200 rounded">{t.btn_cancel}</button>
+                                        <button onClick={handleSaveWebsite} className="text-xs font-semibold px-2 py-1 bg-fb-blue text-white rounded">{t.btn_save}</button>
                                     </div>
                                 </div>
                             </div>
                         ) : (
                             !readonly && (
                                 <button onClick={() => { setNewWebsite({ url: '', privacy: 'public' }); setEditingWebsiteId(null); setShowWebsiteForm(true); }} className="flex items-center gap-2 text-fb-blue hover:underline text-[15px] font-bold mt-1">
-                                    <Plus className="w-5 h-5 rounded-full bg-blue-50 p-1" /> <span>إضافة موقع ويب</span>
+                                    <Plus className="w-5 h-5 rounded-full bg-blue-50 p-1" /> <span>{t.empty_website}</span>
                                 </button>
                             )
                         )}
@@ -1412,18 +1416,18 @@ const ProfileAbout: React.FC<ProfileAboutProps> = ({ currentUser, readonly = fal
                                 </div>
                                 <div className="flex items-center justify-between pt-2 border-t border-gray-200 mt-2">
                                     {editingSocialId ? (
-                                        <button onClick={() => { deleteItem('social', editingSocialId); setShowSocialForm(false); setEditingSocialId(null); }} className="text-xs font-semibold px-2 py-1 text-red-500 hover:bg-red-50 rounded">حذف</button>
+                                        <button onClick={() => { deleteItem('social', editingSocialId); setShowSocialForm(false); setEditingSocialId(null); }} className="text-xs font-semibold px-2 py-1 text-red-500 hover:bg-red-50 rounded">{t.btn_delete}</button>
                                     ) : <div></div>}
                                     <div className="flex gap-2">
-                                        <button onClick={() => setShowSocialForm(false)} className="text-xs font-semibold px-2 py-1 bg-gray-200 rounded">إلغاء</button>
-                                        <button onClick={handleSaveSocial} className="text-xs font-semibold px-2 py-1 bg-fb-blue text-white rounded">حفظ</button>
+                                        <button onClick={() => setShowSocialForm(false)} className="text-xs font-semibold px-2 py-1 bg-gray-200 rounded">{t.btn_cancel}</button>
+                                        <button onClick={handleSaveSocial} className="text-xs font-semibold px-2 py-1 bg-fb-blue text-white rounded">{t.btn_save}</button>
                                     </div>
                                 </div>
                             </div>
                         ) : (
                             !readonly && (
                                 <button onClick={() => { setNewSocial({ platform: '', url: '', privacy: 'public' }); setEditingSocialId(null); setShowSocialForm(true); }} className="flex items-center gap-2 text-fb-blue hover:underline text-[15px] font-bold mt-1">
-                                    <Plus className="w-5 h-5 rounded-full bg-blue-50 p-1" /> <span>إضافة رابط تواصل اجتماعي</span>
+                                    <Plus className="w-5 h-5 rounded-full bg-blue-50 p-1" /> <span>{t.empty_social}</span>
                                 </button>
                             )
                         )}
@@ -1440,18 +1444,18 @@ const ProfileAbout: React.FC<ProfileAboutProps> = ({ currentUser, readonly = fal
                      <div className="mb-4 group">
                         {editingBasic === 'gender' ? (
                             <div className="bg-gray-50 p-3 rounded-lg border border-gray-200">
-                                <label className="text-xs text-gray-500 mb-1 block">النوع</label>
+                                <label className="text-xs text-gray-500 mb-1 block">{t.basic_gender}</label>
                                 <select className="w-full border p-2 rounded mb-2 text-sm bg-white" value={tempGender.value} onChange={(e) => setTempGender({...tempGender, value: e.target.value})}>
                                     <option value="">اختر النوع...</option>
-                                    <option value="ذكر">اختر ذكر</option>
-                                    <option value="أنثى">اختر أنثى</option>
+                                    <option value="ذكر">ذكر</option>
+                                    <option value="أنثى">أنثى</option>
                                     <option value="مخصص">مخصص</option>
                                 </select>
                                 <div className="flex justify-between items-center">
                                     <PrivacySelect value={tempGender.privacy} onChange={(val) => setTempGender({...tempGender, privacy: val})} small />
                                     <div className="flex gap-2">
-                                        <button onClick={() => setEditingBasic(null)} className="text-xs font-semibold px-2 py-1 bg-gray-200 rounded">إلغاء</button>
-                                        <button onClick={() => handleSaveBasic('gender')} className="text-xs font-semibold px-2 py-1 bg-fb-blue text-white rounded">حفظ</button>
+                                        <button onClick={() => setEditingBasic(null)} className="text-xs font-semibold px-2 py-1 bg-gray-200 rounded">{t.btn_cancel}</button>
+                                        <button onClick={() => handleSaveBasic('gender')} className="text-xs font-semibold px-2 py-1 bg-fb-blue text-white rounded">{t.btn_save}</button>
                                     </div>
                                 </div>
                             </div>
@@ -1467,7 +1471,7 @@ const ProfileAbout: React.FC<ProfileAboutProps> = ({ currentUser, readonly = fal
                                             >
                                                 {basicInfo.gender.value}
                                             </div>
-                                            <div className="text-xs text-fb-blue font-medium flex items-center gap-1">النوع <span aria-hidden="true">·</span> <PrivacyIcon type={basicInfo.gender.privacy} /></div>
+                                            <div className="text-xs text-fb-blue font-medium flex items-center gap-1">{t.basic_gender} <span aria-hidden="true">·</span> <PrivacyIcon type={basicInfo.gender.privacy} /></div>
                                         </>
                                     ) : (
                                         !readonly ? (
@@ -1475,7 +1479,7 @@ const ProfileAbout: React.FC<ProfileAboutProps> = ({ currentUser, readonly = fal
                                                 onClick={() => { setTempGender(basicInfo.gender); setEditingBasic('gender'); }}
                                                 className="text-[15px] text-fb-blue font-bold hover:underline"
                                             >
-                                                إضافة النوع
+                                                {t.empty_gender}
                                             </button>
                                         ) : (
                                             <div className="text-[15px] text-gray-400 italic">النوع غير محدد</div>
@@ -1490,7 +1494,7 @@ const ProfileAbout: React.FC<ProfileAboutProps> = ({ currentUser, readonly = fal
                      <div className="mb-4 group">
                         {editingBasic === 'birthDate' ? (
                             <div className="bg-gray-50 p-3 rounded-lg border border-gray-200">
-                                <label className="text-xs text-gray-500 mb-1 block">تاريخ الميلاد</label>
+                                <label className="text-xs text-gray-500 mb-1 block">{t.basic_birth}</label>
                                 <div className="flex gap-2 mb-2">
                                     <select className="border p-1.5 rounded text-sm bg-white flex-1" value={tempBirthDate.day} onChange={(e) => setTempBirthDate({...tempBirthDate, day: e.target.value})}>
                                         {DAYS.map(d => <option key={d} value={d}>{d}</option>)}
@@ -1505,8 +1509,8 @@ const ProfileAbout: React.FC<ProfileAboutProps> = ({ currentUser, readonly = fal
                                 <div className="flex justify-between items-center">
                                     <PrivacySelect value={tempBirthDate.privacy} onChange={(val) => setTempBirthDate({...tempBirthDate, privacy: val})} small />
                                     <div className="flex gap-2">
-                                        <button onClick={() => setEditingBasic(null)} className="text-xs font-semibold px-2 py-1 bg-gray-200 rounded">إلغاء</button>
-                                        <button onClick={() => handleSaveBasic('birthDate')} className="text-xs font-semibold px-2 py-1 bg-fb-blue text-white rounded">حفظ</button>
+                                        <button onClick={() => setEditingBasic(null)} className="text-xs font-semibold px-2 py-1 bg-gray-200 rounded">{t.btn_cancel}</button>
+                                        <button onClick={() => handleSaveBasic('birthDate')} className="text-xs font-semibold px-2 py-1 bg-fb-blue text-white rounded">{t.btn_save}</button>
                                     </div>
                                 </div>
                             </div>
@@ -1522,7 +1526,7 @@ const ProfileAbout: React.FC<ProfileAboutProps> = ({ currentUser, readonly = fal
                                             >
                                                 {basicInfo.birthDate.day} {basicInfo.birthDate.month} {basicInfo.birthDate.year}
                                             </div>
-                                            <div className="text-xs text-fb-blue font-medium flex items-center gap-1">تاريخ الميلاد <span aria-hidden="true">·</span> <PrivacyIcon type={basicInfo.birthDate.privacy} /></div>
+                                            <div className="text-xs text-fb-blue font-medium flex items-center gap-1">{t.basic_birth} <span aria-hidden="true">·</span> <PrivacyIcon type={basicInfo.birthDate.privacy} /></div>
                                         </>
                                     ) : (
                                         !readonly ? (
@@ -1530,7 +1534,7 @@ const ProfileAbout: React.FC<ProfileAboutProps> = ({ currentUser, readonly = fal
                                                 onClick={() => { setTempBirthDate(basicInfo.birthDate); setEditingBasic('birthDate'); }}
                                                 className="text-[15px] text-fb-blue font-bold hover:underline"
                                             >
-                                                إضافة تاريخ الميلاد
+                                                {t.empty_birth}
                                             </button>
                                         ) : (
                                             <div className="text-[15px] text-gray-400 italic">تاريخ الميلاد غير محدد</div>
@@ -1545,7 +1549,7 @@ const ProfileAbout: React.FC<ProfileAboutProps> = ({ currentUser, readonly = fal
                     <div className="mb-4 group">
                         {editingBasic === 'languages' ? (
                             <div className="bg-gray-50 p-3 rounded-lg border border-gray-200">
-                                <label className="text-xs text-gray-500 mb-1 block">اللغات</label>
+                                <label className="text-xs text-gray-500 mb-1 block">{t.basic_lang}</label>
                                 <div className="flex flex-wrap gap-2 mb-2">
                                     {tempLanguages.value.map(lang => (
                                         <span key={lang} className="bg-white border px-2 py-1 rounded text-sm flex items-center gap-1">
@@ -1569,8 +1573,8 @@ const ProfileAbout: React.FC<ProfileAboutProps> = ({ currentUser, readonly = fal
                                 <div className="flex justify-between items-center">
                                     <PrivacySelect value={tempLanguages.privacy} onChange={(val) => setTempLanguages({...tempLanguages, privacy: val})} small />
                                     <div className="flex gap-2">
-                                        <button onClick={() => setEditingBasic(null)} className="text-xs font-semibold px-2 py-1 bg-gray-200 rounded">إلغاء</button>
-                                        <button onClick={() => handleSaveBasic('languages')} className="text-xs font-semibold px-2 py-1 bg-fb-blue text-white rounded">حفظ</button>
+                                        <button onClick={() => setEditingBasic(null)} className="text-xs font-semibold px-2 py-1 bg-gray-200 rounded">{t.btn_cancel}</button>
+                                        <button onClick={() => handleSaveBasic('languages')} className="text-xs font-semibold px-2 py-1 bg-fb-blue text-white rounded">{t.btn_save}</button>
                                     </div>
                                 </div>
                             </div>
@@ -1586,7 +1590,7 @@ const ProfileAbout: React.FC<ProfileAboutProps> = ({ currentUser, readonly = fal
                                             >
                                                 {basicInfo.languages.value.join('، ')}
                                             </div>
-                                            <div className="text-xs text-fb-blue font-medium flex items-center gap-1">اللغات <span aria-hidden="true">·</span> <PrivacyIcon type={basicInfo.languages.privacy} /></div>
+                                            <div className="text-xs text-fb-blue font-medium flex items-center gap-1">{t.basic_lang} <span aria-hidden="true">·</span> <PrivacyIcon type={basicInfo.languages.privacy} /></div>
                                         </>
                                     ) : (
                                         !readonly ? (
@@ -1594,10 +1598,10 @@ const ProfileAbout: React.FC<ProfileAboutProps> = ({ currentUser, readonly = fal
                                                 onClick={() => { setTempLanguages(basicInfo.languages); setEditingBasic('languages'); }}
                                                 className="text-[15px] text-fb-blue font-bold hover:underline"
                                             >
-                                                إضافة لغة
+                                                {t.empty_lang}
                                             </button>
                                         ) : (
-                                            <div className="text-[15px] text-gray-400 italic">لا توجد لغات مضافة</div>
+                                            <div className="text-[15px] text-gray-400 italic">{t.no_lang}</div>
                                         )
                                     )}
                                 </div>
@@ -1613,7 +1617,7 @@ const ProfileAbout: React.FC<ProfileAboutProps> = ({ currentUser, readonly = fal
               <div className="space-y-8 animate-fadeIn">
                   {/* Relationship Status Section */}
                   <div>
-                      <h4 className="font-bold text-[19px] mb-4 text-gray-900">العلاقات</h4>
+                      <h4 className="font-bold text-[19px] mb-4 text-gray-900">{t.about_family}</h4>
                       
                       {editingRelationship ? (
                           <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
@@ -1675,8 +1679,8 @@ const ProfileAbout: React.FC<ProfileAboutProps> = ({ currentUser, readonly = fal
                               <div className="flex justify-between items-center pt-2">
                                   <PrivacySelect value={tempRelationship.privacy} onChange={(val) => setTempRelationship({...tempRelationship, privacy: val})} />
                                   <div className="flex gap-2">
-                                      <button onClick={() => setEditingRelationship(false)} className="px-3 py-1.5 text-gray-600 hover:bg-gray-200 rounded-md text-sm font-semibold">إلغاء</button>
-                                      <button onClick={handleSaveRelationship} className="px-4 py-1.5 bg-fb-blue text-white rounded-md text-sm font-semibold hover:bg-blue-700">حفظ</button>
+                                      <button onClick={() => setEditingRelationship(false)} className="px-3 py-1.5 text-gray-600 hover:bg-gray-200 rounded-md text-sm font-semibold">{t.btn_cancel}</button>
+                                      <button onClick={handleSaveRelationship} className="px-4 py-1.5 bg-fb-blue text-white rounded-md text-sm font-semibold hover:bg-blue-700">{t.btn_save}</button>
                                   </div>
                               </div>
                           </div>
@@ -1691,12 +1695,12 @@ const ProfileAbout: React.FC<ProfileAboutProps> = ({ currentUser, readonly = fal
                                             onClick={() => !readonly && (() => { setTempRelationship(relationship); setEditingRelationship(true); })()}
                                         >
                                             {relationship.status} 
-                                            {relationship.partner && <span className={`${!readonly ? 'text-fb-blue' : 'text-gray-900'} font-normal`}> مع <span className="font-bold">{relationship.partner}</span></span>}
+                                            {relationship.partner && <span className={`${!readonly ? 'text-fb-blue' : 'text-gray-900'} font-normal`}> {t.dir === 'rtl' ? 'مع' : 'with'} <span className="font-bold">{relationship.partner}</span></span>}
                                         </div>
                                         <div className="text-xs text-fb-blue font-medium flex items-center gap-1">
                                             {relationship.year && (
                                                 <span>
-                                                    منذ {relationship.day ? `${relationship.day} ` : ''}
+                                                    {t.dir === 'rtl' ? 'منذ' : 'since'} {relationship.day ? `${relationship.day} ` : ''}
                                                     {relationship.month ? `${relationship.month} ` : ''}
                                                     {relationship.year}
                                                 </span>
@@ -1711,10 +1715,10 @@ const ProfileAbout: React.FC<ProfileAboutProps> = ({ currentUser, readonly = fal
                                               onClick={() => { setTempRelationship(relationship); setEditingRelationship(true); }}
                                               className="text-[16px] text-fb-blue font-bold hover:underline"
                                           >
-                                              إضافة الحالة الاجتماعية
+                                              {t.empty_rel}
                                           </button>
                                       ) : (
-                                          <div className="text-gray-400 italic">أضف حالتك الاجتماعية</div>
+                                          <div className="text-gray-400 italic">لا توجد حالة اجتماعية</div>
                                       )
                                   )}
                               </div>
@@ -1726,7 +1730,7 @@ const ProfileAbout: React.FC<ProfileAboutProps> = ({ currentUser, readonly = fal
 
                   {/* Family Members Section */}
                   <div>
-                      <h4 className="font-bold text-[19px] mb-4 text-gray-900">أفراد العائلة</h4>
+                      <h4 className="font-bold text-[19px] mb-4 text-gray-900">{t.family_members}</h4>
                       
                       {familyMembers.map((member) => (
                           <div key={member.id} className="flex items-start gap-4 mb-4 group relative">
@@ -1762,13 +1766,13 @@ const ProfileAbout: React.FC<ProfileAboutProps> = ({ currentUser, readonly = fal
                               className="flex items-center gap-2 text-fb-blue hover:underline text-[15px] font-bold mt-2"
                           >
                               <Plus className="w-6 h-6 rounded-full bg-blue-50 p-1" />
-                              <span>إضافة فرد من العائلة</span>
+                              <span>{t.empty_family}</span>
                           </button>
                       ) : (
                           <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 mt-4 fade-in">
                               <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
                                   <div className="md:col-span-2">
-                                      <label className="block text-sm font-medium text-gray-700 mb-1">فرد العائلة</label>
+                                      <label className="block text-sm font-medium text-gray-700 mb-1">{t.family_members}</label>
                                       <select 
                                           className="w-full border p-2 rounded text-sm bg-white"
                                           value={newFamilyMember.name}
@@ -1797,11 +1801,11 @@ const ProfileAbout: React.FC<ProfileAboutProps> = ({ currentUser, readonly = fal
 
                               <div className="flex items-center justify-between pt-2 border-t border-gray-200 mt-2">
                                   {editingFamilyId ? (
-                                      <button onClick={() => { deleteItem('family', editingFamilyId); setShowFamilyForm(false); setEditingFamilyId(null); }} className="text-xs font-semibold px-2 py-1 text-red-500 hover:bg-red-50 rounded">حذف</button>
+                                      <button onClick={() => { deleteItem('family', editingFamilyId); setShowFamilyForm(false); setEditingFamilyId(null); }} className="text-xs font-semibold px-2 py-1 text-red-500 hover:bg-red-50 rounded">{t.btn_delete}</button>
                                   ) : <div></div>}
                                   <div className="flex gap-2">
-                                      <button onClick={() => setShowFamilyForm(false)} className="px-3 py-1.5 text-gray-600 hover:bg-gray-200 rounded-md text-sm font-semibold">إلغاء</button>
-                                      <button onClick={handleSaveFamilyMember} disabled={!newFamilyMember.name || !newFamilyMember.relation} className="px-4 py-1.5 bg-fb-blue text-white rounded-md text-sm font-semibold hover:bg-blue-700 disabled:opacity-50">حفظ</button>
+                                      <button onClick={() => setShowFamilyForm(false)} className="px-3 py-1.5 text-gray-600 hover:bg-gray-200 rounded-md text-sm font-semibold">{t.btn_cancel}</button>
+                                      <button onClick={handleSaveFamilyMember} disabled={!newFamilyMember.name || !newFamilyMember.relation} className="px-4 py-1.5 bg-fb-blue text-white rounded-md text-sm font-semibold hover:bg-blue-700 disabled:opacity-50">{t.btn_save}</button>
                                   </div>
                               </div>
                           </div>
@@ -1814,20 +1818,20 @@ const ProfileAbout: React.FC<ProfileAboutProps> = ({ currentUser, readonly = fal
               <div className="space-y-8 animate-fadeIn">
                   {/* Bio */}
                   <div>
-                      <h4 className="font-bold text-[19px] mb-4 text-gray-900">نبذة عنك</h4>
+                      <h4 className="font-bold text-[19px] mb-4 text-gray-900">{t.about_details}</h4>
                       {editingBio ? (
                           <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
                               <textarea 
                                   className="w-full border p-2 rounded mb-2 text-sm h-24 resize-none focus:ring-2 focus:ring-fb-blue focus:border-transparent outline-none"
-                                  placeholder="صف نفسك..."
+                                  placeholder={t.ph_desc_self}
                                   value={tempBio.text}
                                   onChange={(e) => setTempBio({...tempBio, text: e.target.value})}
                               />
                               <div className="flex justify-between items-center">
                                   <PrivacySelect value={tempBio.privacy} onChange={(val) => setTempBio({...tempBio, privacy: val})} />
                                   <div className="flex gap-2">
-                                      <button onClick={() => setEditingBio(false)} className="px-3 py-1.5 text-gray-600 hover:bg-gray-200 rounded-md text-sm font-semibold">إلغاء</button>
-                                      <button onClick={handleSaveBio} className="px-4 py-1.5 bg-fb-blue text-white rounded-md text-sm font-semibold hover:bg-blue-700">حفظ</button>
+                                      <button onClick={() => setEditingBio(false)} className="px-3 py-1.5 text-gray-600 hover:bg-gray-200 rounded-md text-sm font-semibold">{t.btn_cancel}</button>
+                                      <button onClick={handleSaveBio} className="px-4 py-1.5 bg-fb-blue text-white rounded-md text-sm font-semibold hover:bg-blue-700">{t.btn_save}</button>
                                   </div>
                               </div>
                           </div>
@@ -1841,14 +1845,14 @@ const ProfileAbout: React.FC<ProfileAboutProps> = ({ currentUser, readonly = fal
                                 ) : (
                                     !readonly && (
                                         <button onClick={() => { setTempBio(bio); setEditingBio(true); }} className="text-fb-blue hover:underline font-bold">
-                                            اكتب بعض التفاصيل عن نفسك
+                                            {t.empty_bio}
                                         </button>
                                     )
                                 )}
                                 {!readonly && bio.text && (
                                     <div className="flex justify-center items-center gap-1">
                                         <PrivacyIcon type={bio.privacy} />
-                                        <button onClick={() => { setTempBio(bio); setEditingBio(true); }} className="text-xs text-fb-blue hover:underline">تعديل</button>
+                                        <button onClick={() => { setTempBio(bio); setEditingBio(true); }} className="text-xs text-fb-blue hover:underline">{t.btn_edit}</button>
                                     </div>
                                 )}
                               </div>
@@ -1860,20 +1864,20 @@ const ProfileAbout: React.FC<ProfileAboutProps> = ({ currentUser, readonly = fal
 
                   {/* Name Pronunciation */}
                   <div>
-                      <h4 className="font-bold text-[19px] mb-2 text-gray-900">نطق الاسم</h4>
+                      <h4 className="font-bold text-[19px] mb-2 text-gray-900">{t.details_pronounce}</h4>
                       {editingPronunciation ? (
                          <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
                              <label className="text-xs text-gray-500 mb-1 block">كيف ينطق اسمك؟</label>
                              <input 
                                   type="text"
                                   className="w-full border p-2 rounded mb-2 text-sm"
-                                  placeholder="مثال: أحمد (AH-med)"
+                                  placeholder={t.ph_pronounce}
                                   value={tempPronunciation}
                                   onChange={(e) => setTempPronunciation(e.target.value)}
                              />
                              <div className="flex justify-end gap-2">
-                                  <button onClick={() => setEditingPronunciation(false)} className="px-3 py-1.5 text-gray-600 hover:bg-gray-200 rounded-md text-sm font-semibold">إلغاء</button>
-                                  <button onClick={handleSavePronunciation} className="px-4 py-1.5 bg-fb-blue text-white rounded-md text-sm font-semibold hover:bg-blue-700">حفظ</button>
+                                  <button onClick={() => setEditingPronunciation(false)} className="px-3 py-1.5 text-gray-600 hover:bg-gray-200 rounded-md text-sm font-semibold">{t.btn_cancel}</button>
+                                  <button onClick={handleSavePronunciation} className="px-4 py-1.5 bg-fb-blue text-white rounded-md text-sm font-semibold hover:bg-blue-700">{t.btn_save}</button>
                              </div>
                          </div>
                       ) : (
@@ -1883,7 +1887,7 @@ const ProfileAbout: React.FC<ProfileAboutProps> = ({ currentUser, readonly = fal
                                     <Mic className="w-6 h-6 text-fb-blue" />
                                     <div className="flex-1">
                                         <div className="text-[16px] text-fb-blue font-bold">{pronunciation.text}</div>
-                                        <div className="text-xs text-fb-blue font-medium flex items-center gap-1">نطق الاسم <span aria-hidden="true">·</span> <PrivacyIcon type={pronunciation.privacy} /></div>
+                                        <div className="text-xs text-fb-blue font-medium flex items-center gap-1">{t.details_pronounce} <span aria-hidden="true">·</span> <PrivacyIcon type={pronunciation.privacy} /></div>
                                     </div>
                                     {!readonly && <button onClick={() => { setTempPronunciation(pronunciation.text); setEditingPronunciation(true); }} className="p-2 text-gray-500 hover:bg-gray-100 rounded-full"><Pen className="w-5 h-5" /></button>}
                                  </div>
@@ -1891,7 +1895,7 @@ const ProfileAbout: React.FC<ProfileAboutProps> = ({ currentUser, readonly = fal
                                  !readonly && (
                                      <button onClick={() => setEditingPronunciation(true)} className="flex items-center gap-2 text-fb-blue hover:underline text-[15px] font-bold">
                                          <Plus className="w-6 h-6 rounded-full bg-blue-50 p-1" />
-                                         <span>أضف طريقة نطق الاسم</span>
+                                         <span>{t.empty_pronounce}</span>
                                      </button>
                                  )
                              )}
@@ -1942,11 +1946,11 @@ const ProfileAbout: React.FC<ProfileAboutProps> = ({ currentUser, readonly = fal
                               </div>
                               <div className="flex items-center justify-between pt-2 border-t border-gray-200 mt-2">
                                   {editingOtherNameId ? (
-                                      <button onClick={() => { deleteItem('otherName', editingOtherNameId); setShowOtherNameForm(false); setEditingOtherNameId(null); }} className="text-xs font-semibold px-2 py-1 text-red-500 hover:bg-red-50 rounded">حذف</button>
+                                      <button onClick={() => { deleteItem('otherName', editingOtherNameId); setShowOtherNameForm(false); setEditingOtherNameId(null); }} className="text-xs font-semibold px-2 py-1 text-red-500 hover:bg-red-50 rounded">{t.btn_delete}</button>
                                   ) : <div></div>}
                                   <div className="flex gap-2">
-                                      <button onClick={() => setShowOtherNameForm(false)} className="px-3 py-1.5 text-gray-600 hover:bg-gray-200 rounded-md text-sm font-semibold">إلغاء</button>
-                                      <button onClick={handleSaveOtherName} disabled={!newOtherName.name} className="px-4 py-1.5 bg-fb-blue text-white rounded-md text-sm font-semibold hover:bg-blue-700 disabled:opacity-50">حفظ</button>
+                                      <button onClick={() => setShowOtherNameForm(false)} className="px-3 py-1.5 text-gray-600 hover:bg-gray-200 rounded-md text-sm font-semibold">{t.btn_cancel}</button>
+                                      <button onClick={handleSaveOtherName} disabled={!newOtherName.name} className="px-4 py-1.5 bg-fb-blue text-white rounded-md text-sm font-semibold hover:bg-blue-700 disabled:opacity-50">{t.btn_save}</button>
                                   </div>
                               </div>
                           </div>
@@ -1954,7 +1958,7 @@ const ProfileAbout: React.FC<ProfileAboutProps> = ({ currentUser, readonly = fal
                           !readonly && (
                               <button onClick={() => { setNewOtherName({ name: '', type: 'اسم الشهرة', privacy: 'public' }); setEditingOtherNameId(null); setShowOtherNameForm(true); }} className="flex items-center gap-2 text-fb-blue hover:underline text-[15px] font-bold">
                                    <Plus className="w-6 h-6 rounded-full bg-blue-50 p-1" />
-                                   <span>أضف اسماً آخر</span>
+                                   <span>{t.empty_other_name}</span>
                               </button>
                           )
                       )}
@@ -1964,20 +1968,20 @@ const ProfileAbout: React.FC<ProfileAboutProps> = ({ currentUser, readonly = fal
 
                   {/* Favorite Quotes */}
                   <div>
-                      <h4 className="font-bold text-[19px] mb-4 text-gray-900">الاقتباسات المفضلة</h4>
+                      <h4 className="font-bold text-[19px] mb-4 text-gray-900">{t.details_quotes}</h4>
                        {editingQuotes ? (
                           <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
                               <textarea 
                                   className="w-full border p-2 rounded mb-2 text-sm h-24 resize-none focus:ring-2 focus:ring-fb-blue focus:border-transparent outline-none"
-                                  placeholder="أضف اقتباسك المفضل..."
+                                  placeholder={t.ph_quote}
                                   value={tempQuotes.text}
                                   onChange={(e) => setTempQuotes({...tempQuotes, text: e.target.value})}
                               />
                               <div className="flex justify-between items-center">
                                   <PrivacySelect value={tempQuotes.privacy} onChange={(val) => setTempQuotes({...tempQuotes, privacy: val})} />
                                   <div className="flex gap-2">
-                                      <button onClick={() => setEditingQuotes(false)} className="px-3 py-1.5 text-gray-600 hover:bg-gray-200 rounded-md text-sm font-semibold">إلغاء</button>
-                                      <button onClick={handleSaveQuotes} className="px-4 py-1.5 bg-fb-blue text-white rounded-md text-sm font-semibold hover:bg-blue-700">حفظ</button>
+                                      <button onClick={() => setEditingQuotes(false)} className="px-3 py-1.5 text-gray-600 hover:bg-gray-200 rounded-md text-sm font-semibold">{t.btn_cancel}</button>
+                                      <button onClick={handleSaveQuotes} className="px-4 py-1.5 bg-fb-blue text-white rounded-md text-sm font-semibold hover:bg-blue-700">{t.btn_save}</button>
                                   </div>
                               </div>
                           </div>
@@ -1997,7 +2001,7 @@ const ProfileAbout: React.FC<ProfileAboutProps> = ({ currentUser, readonly = fal
                                    !readonly && (
                                        <button onClick={() => { setTempQuotes(quotes); setEditingQuotes(true); }} className="flex items-center gap-2 text-fb-blue hover:underline text-[15px] font-bold">
                                            <Plus className="w-6 h-6 rounded-full bg-blue-50 p-1" />
-                                           <span>أضف اقتباساتك المفضلة</span>
+                                           <span>{t.empty_quotes}</span>
                                        </button>
                                    )
                                )}
@@ -2009,7 +2013,7 @@ const ProfileAbout: React.FC<ProfileAboutProps> = ({ currentUser, readonly = fal
 
                   {/* Blood Donation */}
                   <div>
-                      <h4 className="font-bold text-[19px] mb-4 text-gray-900">التبرع بالدم</h4>
+                      <h4 className="font-bold text-[19px] mb-4 text-gray-900">{t.details_blood}</h4>
                       <div className="flex items-center gap-4 bg-red-50 p-3 rounded-lg border border-red-100">
                           <div className="bg-red-500 rounded-full p-2">
                               <Droplet className="w-6 h-6 text-white" />
@@ -2019,7 +2023,7 @@ const ProfileAbout: React.FC<ProfileAboutProps> = ({ currentUser, readonly = fal
                               <div className="text-xs text-gray-500">يمكنك المساعدة في إنقاذ الأرواح من خلال التبرع بالدم.</div>
                           </div>
                           <button className="text-sm bg-white border border-gray-300 px-3 py-1.5 rounded-md font-semibold hover:bg-gray-50 transition">
-                              تعرف على المزيد
+                              {t.btn_view_more}
                           </button>
                       </div>
                   </div>
@@ -2030,7 +2034,7 @@ const ProfileAbout: React.FC<ProfileAboutProps> = ({ currentUser, readonly = fal
           return (
               <div className="space-y-8 animate-fadeIn">
                   <div>
-                      <h4 className="font-bold text-[19px] mb-4 text-gray-900">المناسبات الشخصية</h4>
+                      <h4 className="font-bold text-[19px] mb-4 text-gray-900">{t.about_events}</h4>
                       
                       {lifeEvents.map((event) => (
                           <div key={event.id} className="flex items-start gap-4 mb-4 group relative">
@@ -2066,7 +2070,7 @@ const ProfileAbout: React.FC<ProfileAboutProps> = ({ currentUser, readonly = fal
                               className="flex items-center gap-2 text-fb-blue hover:underline text-[15px] font-bold"
                           >
                               <Plus className="w-6 h-6 rounded-full bg-blue-50 p-1" />
-                              <span>إضافة مناسبة شخصية</span>
+                              <span>{t.empty_events}</span>
                           </button>
                       ) : (
                           <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 mt-4 fade-in">
@@ -2122,11 +2126,11 @@ const ProfileAbout: React.FC<ProfileAboutProps> = ({ currentUser, readonly = fal
 
                                   <div className="flex items-center justify-between pt-2 border-t border-gray-200 mt-2">
                                       {editingEventId ? (
-                                          <button onClick={() => { deleteItem('event', editingEventId); setShowEventForm(false); setEditingEventId(null); }} className="text-xs font-semibold px-2 py-1 text-red-500 hover:bg-red-50 rounded">حذف</button>
+                                          <button onClick={() => { deleteItem('event', editingEventId); setShowEventForm(false); setEditingEventId(null); }} className="text-xs font-semibold px-2 py-1 text-red-500 hover:bg-red-50 rounded">{t.btn_delete}</button>
                                       ) : <div></div>}
                                       <div className="flex gap-2">
-                                          <button onClick={() => setShowEventForm(false)} className="px-3 py-1.5 text-gray-600 hover:bg-gray-200 rounded-md text-sm font-semibold">إلغاء</button>
-                                          <button onClick={handleSaveEvent} disabled={!newEvent.title || !newEvent.year} className="px-4 py-1.5 bg-fb-blue text-white rounded-md text-sm font-semibold hover:bg-blue-700 disabled:opacity-50">حفظ</button>
+                                          <button onClick={() => setShowEventForm(false)} className="px-3 py-1.5 text-gray-600 hover:bg-gray-200 rounded-md text-sm font-semibold">{t.btn_cancel}</button>
+                                          <button onClick={handleSaveEvent} disabled={!newEvent.title || !newEvent.year} className="px-4 py-1.5 bg-fb-blue text-white rounded-md text-sm font-semibold hover:bg-blue-700 disabled:opacity-50">{t.btn_save}</button>
                                       </div>
                                   </div>
                               </div>
@@ -2139,7 +2143,7 @@ const ProfileAbout: React.FC<ProfileAboutProps> = ({ currentUser, readonly = fal
         return (
             <div className="flex flex-col items-center justify-center py-10 text-gray-500">
                 <Info className="w-12 h-12 mb-2 text-gray-300" />
-                <p>لا توجد معلومات إضافية لعرضها هنا حالياً.</p>
+                <p>{t.no_details}</p>
             </div>
         );
     }
@@ -2149,7 +2153,7 @@ const ProfileAbout: React.FC<ProfileAboutProps> = ({ currentUser, readonly = fal
     <div className="bg-white shadow-sm rounded-lg flex flex-col md:flex-row min-h-[500px] overflow-hidden">
       {/* Sidebar (Right side in RTL) */}
       <div className="w-full md:w-1/3 border-b md:border-b-0 md:border-l border-gray-200 p-2">
-        <h2 className="text-xl font-bold p-3 mb-2">حول</h2>
+        <h2 className="text-xl font-bold p-3 mb-2">{t.profile_about}</h2>
         <ul className="space-y-1">
           {sections.map((section) => (
             <li

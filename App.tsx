@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import Navbar from './components/Navbar';
 import Sidebar from './components/Sidebar';
@@ -10,6 +9,8 @@ import SavedItems from './components/SavedItems';
 import Watch from './components/Watch';
 import { User, View, Story, Photo, Album, VideoItem, Post } from './types';
 import { Check, Info, X } from 'lucide-react';
+import { LanguageProvider } from './context/LanguageContext';
+import { ThemeProvider } from './context/ThemeContext'; // Import ThemeProvider
 
 const initialUser: User = {
   id: 'me',
@@ -88,7 +89,7 @@ const onlineUsers: User[] = Array.from({ length: 15 }).map((_, i) => ({
   online: Math.random() > 0.3
 }));
 
-const App: React.FC = () => {
+const AppContent: React.FC = () => {
   const [currentView, setView] = useState<View>('home');
   
   const [currentUser, setCurrentUser] = useState<User>(initialUser);
@@ -98,11 +99,9 @@ const App: React.FC = () => {
   const [yourPhotos, setYourPhotos] = useState<Photo[]>(initialYourPhotos);
   const [albums, setAlbums] = useState<Album[]>(initialAlbums);
   
-  // Real Saved Items State
   const [savedPhotos, setSavedPhotos] = useState<Photo[]>([]);
   const [savedVideos, setSavedVideos] = useState<VideoItem[]>([]);
   
-  // Global User Videos State
   const [userVideos, setUserVideos] = useState<VideoItem[]>([]);
 
   const [viewingProfile, setViewingProfile] = useState<User>(currentUser);
@@ -114,14 +113,12 @@ const App: React.FC = () => {
       setTimeout(() => setAppNotification(null), 4000);
   };
 
-  // Helper to format duration
   const formatDuration = (seconds: number) => {
       const min = Math.floor(seconds / 60);
       const sec = Math.floor(seconds % 60);
       return `${min}:${sec < 10 ? '0' : ''}${sec}`;
   };
 
-  // Modified handleCreatePost to accept skipPhotoAdd flag and handle Videos
   const handleCreatePost = (content: string, image?: string, skipPhotoAdd: boolean = false) => {
     const newPost: Post = {
       id: Date.now().toString(),
@@ -135,16 +132,13 @@ const App: React.FC = () => {
       isPinned: false
     };
 
-    // Update posts
     setPosts(prev => {
         const pinned = prev.filter(p => p.isPinned);
         const unpinned = prev.filter(p => !p.isPinned);
         return [...pinned, newPost, ...unpinned];
     });
 
-    // 1. Handle Video Uploads to ProfileVideos
     if (image && image.startsWith('data:video')) {
-        // Create a temporary video element to extract metadata
         const videoElement = document.createElement('video');
         videoElement.src = image;
         videoElement.onloadedmetadata = () => {
@@ -161,12 +155,9 @@ const App: React.FC = () => {
                 comments: 0
             };
             setUserVideos(prev => [newItem, ...prev]);
-            
-            // Clean up
             videoElement.remove();
         };
     } 
-    // 2. Handle Image Uploads to Photos (Only if not video and not skipped)
     else if (image && !skipPhotoAdd) {
         setYourPhotos(prev => {
             const exists = prev.some(p => p.url === image);
@@ -376,7 +367,7 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#F0F2F5] text-[#050505]">
+    <div className="min-h-screen bg-[#F0F2F5] dark:bg-gray-900 text-[#050505] dark:text-white transition-colors duration-300">
       <Navbar currentView={currentView} setView={setView} />
       
       <div className="flex justify-between">
@@ -412,6 +403,16 @@ const App: React.FC = () => {
              />
            )}
            
+           {currentView === 'gaming' && (
+               <div className="flex items-center justify-center h-[calc(100vh-64px)] w-full">
+                   <div className="text-center text-gray-500 dark:text-gray-400">
+                       <h2 className="text-2xl font-bold mb-2">ألعاب (Gaming)</h2>
+                       <p>قسم الألعاب قيد التطوير...</p>
+                       <button onClick={() => setView('home')} className="mt-4 text-fb-blue hover:underline">العودة للرئيسية</button>
+                   </div>
+               </div>
+           )}
+           
            {(currentView === 'profile' || currentView === 'friends' || currentView === 'profile_videos') && (
              <Profile 
                 currentUser={currentUser} 
@@ -421,19 +422,16 @@ const App: React.FC = () => {
                 onFriendAction={handleFriendAction}
                 defaultTab={currentView === 'friends' ? 'friends' : currentView === 'profile_videos' ? 'videos' : undefined}
                 
-                // Posts
                 posts={posts}
                 onPostCreate={handleCreatePost}
                 onTogglePin={handleTogglePinPost}
                 onDeletePost={handleDeletePost}
 
-                // Update Handlers
                 onUpdateAvatar={handleUpdateProfilePhoto}
                 onUpdateCover={handleUpdateCoverPhoto}
                 onUpdateName={handleUpdateName} 
                 onAddStory={handleAddStory}
                 
-                // Photos/Albums
                 photos={yourPhotos}
                 albums={albums}
                 onAddPhoto={handleAddGenericPhoto}
@@ -441,12 +439,10 @@ const App: React.FC = () => {
                 onAddPhotoToAlbum={handleAddPhotoToSpecificAlbum}
                 onDeletePhoto={handleDeletePhoto}
                 
-                // Videos Props
                 userVideos={userVideos}
                 onAddVideo={handleAddVideoDirectly}
                 onDeleteVideo={handleDeleteVideo}
 
-                // Saved Props
                 savedPhotos={savedPhotos}
                 onToggleSave={handleToggleSave}
                 savedVideos={savedVideos}
@@ -454,9 +450,9 @@ const App: React.FC = () => {
              />
            )}
 
-           {currentView !== 'home' && currentView !== 'profile' && currentView !== 'friends' && currentView !== 'saved' && currentView !== 'watch' && currentView !== 'profile_videos' && (
+           {currentView !== 'home' && currentView !== 'profile' && currentView !== 'friends' && currentView !== 'saved' && currentView !== 'watch' && currentView !== 'profile_videos' && currentView !== 'gaming' && (
                <div className="flex items-center justify-center h-[calc(100vh-64px)] w-full">
-                   <div className="text-center text-gray-500">
+                   <div className="text-center text-gray-500 dark:text-gray-400">
                        <h2 className="text-2xl font-bold mb-2 capitalize">{currentView === 'marketplace' ? 'المتجر' : 'صفحة'}</h2>
                        <p>هذا القسم قيد التطوير حالياً.</p>
                        <button onClick={() => setView('home')} className="mt-4 text-fb-blue hover:underline">العودة للرئيسية</button>
@@ -488,6 +484,16 @@ const App: React.FC = () => {
         </div>
       )}
     </div>
+  );
+};
+
+const App: React.FC = () => {
+  return (
+    <ThemeProvider>
+      <LanguageProvider>
+        <AppContent />
+      </LanguageProvider>
+    </ThemeProvider>
   );
 };
 

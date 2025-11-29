@@ -1,7 +1,8 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Plus, MoreHorizontal, Image as ImageIcon, Pen, X, ArrowRight, ArrowLeft, ChevronLeft, ChevronRight, Upload, ThumbsUp, MessageCircle, Share2, Send, Smile, Globe, Download, UserCircle, Trash2, Bell, Bookmark, Lock, Users, UserPlus, BellOff, BookmarkMinus, AtSign } from 'lucide-react';
+import { Plus, MoreHorizontal, Image as ImageIcon, Pen, X, ArrowRight, ArrowLeft, ChevronLeft, ChevronRight, Upload, ThumbsUp, MessageCircle, Share2, Send, Smile, Globe, Download, UserCircle, Trash2, Bell, Bookmark, Lock, Users, UserPlus, BellOff, BookmarkMinus, AtSign, ChevronDown } from 'lucide-react';
 import { User, Photo, Album } from '../types';
+import { useLanguage } from '../context/LanguageContext';
 
 interface ProfilePhotosProps {
   currentUser: User;
@@ -21,6 +22,7 @@ type PhotoTab = 'your_photos' | 'tagged_photos' | 'albums';
 type AudienceType = 'public' | 'friends' | 'friends_of_friends' | 'only_me';
 type CommentAudienceType = 'public' | 'friends' | 'mentions';
 type MenuView = 'main' | 'audience' | 'comments';
+type PrivacyLevel = 'public' | 'friends' | 'only_me';
 
 // Local interface for comments inside lightbox
 interface LocalComment {
@@ -30,6 +32,48 @@ interface LocalComment {
     text: string;
     timestamp: string;
 }
+
+// --- Privacy Selector Component (Local Reuse) ---
+interface PrivacySelectProps { value: PrivacyLevel; onChange: (val: PrivacyLevel) => void; small?: boolean; }
+const PrivacySelect: React.FC<PrivacySelectProps> = ({ value, onChange, small }) => {
+  const { t } = useLanguage();
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const options: { val: PrivacyLevel; label: string; icon: React.ElementType }[] = [
+    { val: 'public', label: t.dir === 'rtl' ? 'عام' : 'Public', icon: Globe },
+    { val: 'friends', label: t.dir === 'rtl' ? 'الأصدقاء' : 'Friends', icon: Users },
+    { val: 'friends_of_friends', label: t.dir === 'rtl' ? 'أصدقاءالأصدقاء' : 'friends_of_friends', icon: Users },
+    { val: 'only_me', label: t.dir === 'rtl' ? 'أنا فقط' : 'Only Me', icon: Lock },
+  ];
+  const selected = options.find((o) => o.val === value) || options[0];
+  const Icon = selected.icon;
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+  return (
+    <div className="relative inline-block text-left" ref={dropdownRef}>
+      <button type="button" onClick={() => setIsOpen(!isOpen)} className={`flex items-center gap-2 bg-gray-100 hover:bg-gray-200 rounded-md transition font-medium text-gray-700 border border-gray-200 ${small ? 'px-2 py-1 text-xs' : 'px-3 py-1.5 text-sm'}`}>
+        <Icon className={small ? "w-3 h-3" : "w-4 h-4"} /> <span>{selected.label}</span> <ChevronDown className={small ? "w-3 h-3" : "w-3 h-3"} />
+      </button>
+      {isOpen && (
+        <div className="absolute right-0 z-20 mt-1 w-36 bg-white shadow-xl rounded-lg border border-gray-100 overflow-hidden animate-fadeIn">
+          {options.map((opt) => (
+            <div key={opt.val} onClick={() => { onChange(opt.val); setIsOpen(false); }} className={`flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-gray-100 text-sm ${value === opt.val ? 'bg-blue-50 text-fb-blue' : 'text-gray-700'}`}>
+              <opt.icon className="w-4 h-4" /> <span>{opt.label}</span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
 
 const ProfilePhotos: React.FC<ProfilePhotosProps> = ({ 
   currentUser, 
@@ -44,10 +88,9 @@ const ProfilePhotos: React.FC<ProfilePhotosProps> = ({
   savedPhotos = [],
   onToggleSave
 }) => {
+  const { t } = useLanguage();
   // --- State ---
   const [activeTab, setActiveTab] = useState<PhotoTab>('your_photos');
-  
-  // Cleared Mock Data
   const [taggedPhotos] = useState<Photo[]>([]);
 
   // UI State
@@ -70,15 +113,16 @@ const ProfilePhotos: React.FC<ProfilePhotosProps> = ({
   
   // Menu Item States
   const [notificationsOn, setNotificationsOn] = useState(true);
-  
-  // Audience State
   const [audience, setAudience] = useState<AudienceType>('public');
   const [commentAudience, setCommentAudience] = useState<CommentAudienceType>('public');
 
   // Create Album Modal State
   const [showCreateAlbumModal, setShowCreateAlbumModal] = useState(false);
   const [newAlbumTitle, setNewAlbumTitle] = useState('');
-  const [newAlbumFiles, setNewAlbumFiles] = useState<string[]>([]); // Base64 strings
+  const [newAlbumFiles, setNewAlbumFiles] = useState<string[]>([]); 
+
+  // NEW: Upload Privacy State
+  const [uploadPrivacy, setUploadPrivacy] = useState<PrivacyLevel>('public');
 
   // Refs
   const mainInputRef = useRef<HTMLInputElement>(null);
@@ -105,7 +149,7 @@ const ProfilePhotos: React.FC<ProfilePhotosProps> = ({
     const handleClickOutside = (event: MouseEvent) => {
         if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
             setShowMenu(false);
-            setMenuView('main'); // Reset menu view on close
+            setMenuView('main'); 
         }
     };
     if (showMenu) {
@@ -139,7 +183,7 @@ const ProfilePhotos: React.FC<ProfilePhotosProps> = ({
           case 'public': return 'العامة';
           case 'friends': return 'الأصدقاء';
           case 'friends_of_friends': return 'أصدقاء الأصدقاء';
-          case 'only_me': return 'أنا فقط';
+          case 'only_me': return 'أنت فقط';
       }
   };
 
@@ -162,7 +206,8 @@ const ProfilePhotos: React.FC<ProfilePhotosProps> = ({
           id: `new_${Date.now()}_${i}`,
           url: base64,
           likes: 0,
-          comments: 0
+          comments: 0,
+          // In a real app, we would store the privacy here too
         };
         onAddPhoto(newPhoto);
       }
@@ -268,9 +313,7 @@ const ProfilePhotos: React.FC<ProfilePhotosProps> = ({
       const currentPhoto = currentLightboxSource[lightboxIndex];
       if (onDeletePhoto && currentPhoto) {
         if (window.confirm('هل أنت متأكد من حذف هذه الصورة نهائياً؟')) {
-            // Important: Close lightbox first to avoid rendering issues with deleted item
             setLightboxOpen(false);
-            // Call parent handler to remove from global state/albums
             onDeletePhoto(currentPhoto.id);
         }
       }
@@ -289,7 +332,6 @@ const ProfilePhotos: React.FC<ProfilePhotosProps> = ({
       setShowMenu(false);
   };
 
-  // Check if current photo is saved
   const isCurrentPhotoSaved = currentLightboxSource[lightboxIndex] 
       ? savedPhotos.some(p => p.id === currentLightboxSource[lightboxIndex].id)
       : false;
@@ -401,7 +443,10 @@ const ProfilePhotos: React.FC<ProfilePhotosProps> = ({
         <div className="flex items-center justify-between mb-2">
            <h2 className="text-xl font-bold text-gray-900">الصور</h2>
            {isOwnProfile && (
-              <div className="flex gap-2">
+              <div className="flex gap-3 items-center">
+                 {/* Privacy Selector for Upload */}
+                 <PrivacySelect value={uploadPrivacy} onChange={setUploadPrivacy} small />
+                 
                  <button 
                   onClick={() => mainInputRef.current?.click()}
                   className="text-fb-blue font-medium text-sm hover:bg-blue-50 px-3 py-1.5 rounded-md transition flex items-center gap-2"
@@ -409,9 +454,7 @@ const ProfilePhotos: React.FC<ProfilePhotosProps> = ({
                     <Plus className="w-4 h-4" />
                     إضافة صورة
                  </button>
-                 <button className="p-2 hover:bg-gray-100 rounded-md text-gray-600">
-                    <MoreHorizontal className="w-5 h-5" />
-                 </button>
+                 {/* Removed the extra 'More' button here as requested */}
               </div>
            )}
         </div>

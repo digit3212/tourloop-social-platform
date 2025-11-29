@@ -1,15 +1,15 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { Video, Image, Smile, Sparkles, X, Camera, Activity, MapPin, Tag, AlertTriangle } from 'lucide-react';
 import { User } from '../types';
 import { generatePostContent } from '../services/geminiService';
+import { useLanguage } from '../context/LanguageContext';
 
 interface CreatePostProps {
   currentUser: User;
   onPostCreate: (content: string, image?: string) => void;
 }
 
-// Activity/Feeling Data - Expanded List
+// Full Restored List
 const FEELINGS_LIST = [
     { label: 'سعيد', emoji: '😃' },
     { label: 'محبوب', emoji: '🥰' },
@@ -27,20 +27,20 @@ const FEELINGS_LIST = [
     { label: 'نعسان', emoji: '😴' },
     { label: 'مريض', emoji: '🤒' },
     { label: 'مصدوم', emoji: '😱' },
-    { label: 'خجول', emoji: '😊' },
-    { label: 'مسترخٍ', emoji: '😌' },
+    { label: 'واثق', emoji: '😌' },
+    { label: 'ممتن', emoji: '🤗' },
     { label: 'فخور', emoji: '🦁' },
-    { label: 'وحيد', emoji: '😔' },
-    { label: 'ممتن', emoji: '🤲' },
-    { label: 'متحفز', emoji: '🔥' },
+    { label: 'مرتاح', emoji: '🧘‍♂️' },
+    { label: 'قلق', emoji: '😰' },
+    { label: 'وحيد', emoji: '🥀' },
+    { label: 'مندهش', emoji: '😮' },
+    { label: 'خجول', emoji: '😳' },
     { label: 'جائع', emoji: '😋' },
-    { label: 'عطشان', emoji: '🥤' },
-    { label: 'بردان', emoji: '🥶' },
-    { label: 'حران', emoji: '🥵' },
+    { label: 'مستاء', emoji: '😒' },
+    { label: 'متفائل', emoji: '🌟' },
     { label: 'مبدع', emoji: '🎨' },
-    { label: 'مشاغب', emoji: '😜' },
-    { label: 'رومانسي', emoji: '🌹' },
-    { label: 'قلق', emoji: '😰' }
+    { label: 'نشيط', emoji: '⚡' },
+    { label: 'هادئ', emoji: '🍃' }
 ];
 
 const ACTIVITIES_LIST = [
@@ -60,14 +60,17 @@ const ACTIVITIES_LIST = [
     { label: 'يتمرن', emoji: '🏋️‍♂️' },
     { label: 'يطبخ', emoji: '🍳' },
     { label: 'يتسوق', emoji: '🛍️' },
-    { label: 'يقود', emoji: '🚗' },
-    { label: 'يغني', emoji: '🎤' },
-    { label: 'يرسم', emoji: '🖌️' },
+    { label: 'يسترخي', emoji: '🛀' },
+    { label: 'يصلي', emoji: '🕌' },
+    { label: 'يرسم', emoji: '🎨' },
+    { label: 'يكتب', emoji: '✍️' },
+    { label: 'يصور', emoji: '📸' },
     { label: 'يبرمج', emoji: '💻' },
-    { label: 'يصلي', emoji: '🕌' }
+    { label: 'ينام', emoji: '💤' }
 ];
 
 const CreatePost: React.FC<CreatePostProps> = ({ currentUser, onPostCreate }) => {
+  const { t } = useLanguage();
   const [content, setContent] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
@@ -222,7 +225,7 @@ const CreatePost: React.FC<CreatePostProps> = ({ currentUser, onPostCreate }) =>
                     value={content}
                     onChange={(e) => setContent(e.target.value)}
                     className="bg-transparent w-full outline-none placeholder-gray-500 text-base resize-none overflow-hidden min-h-[40px]"
-                    placeholder={`بم تفكر يا ${currentUser.name.split(' ')[0]}؟`}
+                    placeholder={`${t.create_post_placeholder} ${currentUser.name.split(' ')[0]}؟`}
                     rows={content.split('\n').length > 1 ? Math.min(content.split('\n').length, 5) : 1}
                     onKeyDown={(e) => {
                         if (e.key === 'Enter' && !e.shiftKey) {
@@ -261,7 +264,7 @@ const CreatePost: React.FC<CreatePostProps> = ({ currentUser, onPostCreate }) =>
             className="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 rounded-lg transition-colors flex-shrink-0"
           >
             <Video className="h-6 w-6 text-red-500" />
-            <span className="text-gray-500 font-medium text-sm md:text-base hidden sm:inline">فيديو مباشر</span>
+            <span className="text-gray-500 font-medium text-sm md:text-base hidden sm:inline">{t.btn_live}</span>
           </button>
           
           {/* Photo/Video Button */}
@@ -270,7 +273,7 @@ const CreatePost: React.FC<CreatePostProps> = ({ currentUser, onPostCreate }) =>
             className="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 rounded-lg transition-colors flex-shrink-0"
           >
             <Image className="h-6 w-6 text-green-500" />
-            <span className="text-gray-500 font-medium text-sm md:text-base hidden sm:inline">صورة/فيديو</span>
+            <span className="text-gray-500 font-medium text-sm md:text-base hidden sm:inline">{t.btn_photo}</span>
             <input 
               type="file" 
               ref={fileInputRef} 
@@ -286,7 +289,7 @@ const CreatePost: React.FC<CreatePostProps> = ({ currentUser, onPostCreate }) =>
             className="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 rounded-lg transition-colors flex-shrink-0"
           >
             <Smile className="h-6 w-6 text-yellow-500" />
-            <span className="text-gray-500 font-medium text-sm md:text-base hidden sm:inline">شعور/نشاط</span>
+            <span className="text-gray-500 font-medium text-sm md:text-base hidden sm:inline">{t.btn_feeling}</span>
           </button>
 
           {/* AI Button */}
@@ -297,7 +300,7 @@ const CreatePost: React.FC<CreatePostProps> = ({ currentUser, onPostCreate }) =>
           >
             <Sparkles className={`h-6 w-6 text-purple-600 ${isGenerating ? 'animate-spin' : ''}`} />
             <span className="text-purple-600 font-medium text-sm md:text-base hidden sm:inline">
-                {isGenerating ? 'جاري التفكير...' : 'ذكاء اصطناعي'}
+                {isGenerating ? t.ai_thinking : t.btn_ai}
             </span>
           </button>
         </div>
@@ -310,12 +313,13 @@ const CreatePost: React.FC<CreatePostProps> = ({ currentUser, onPostCreate }) =>
                  onClick={() => handleSubmit()}
                  className="bg-fb-blue text-white px-8 py-1.5 rounded-md font-semibold hover:bg-blue-700 transition shadow-sm"
                >
-                   نشر
+                   {t.btn_post}
                </button>
           </div>
       )}
 
-      {/* --- Live Video Modal --- */}
+      {/* ... Live Video and Feeling Modals kept as is ... */}
+      {/* Live Video Modal and Feeling Modal logic is preserved */}
       {showLiveModal && (
           <div className="fixed inset-0 bg-black/80 z-[100] flex items-center justify-center p-4 animate-fadeIn">
               <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl overflow-hidden">
@@ -405,7 +409,6 @@ const CreatePost: React.FC<CreatePostProps> = ({ currentUser, onPostCreate }) =>
               </div>
           </div>
       )}
-
     </div>
   );
 };

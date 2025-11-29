@@ -12,6 +12,7 @@ import ProfileIntro from './ProfileIntro';
 import ProfileGroups from './ProfileGroups';
 import ProfilePages from './ProfilePages';
 import ProfileEvents from './ProfileEvents';
+import { useLanguage } from '../context/LanguageContext';
 
 interface ProfileProps {
   currentUser: User;
@@ -93,6 +94,7 @@ const Profile: React.FC<ProfileProps> = ({
     savedVideos = [],
     onToggleSaveVideo
 }) => {
+  const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState<TabType>(defaultTab || 'posts');
   const [showFriendMenu, setShowFriendMenu] = useState(false);
   const [showMoreMenu, setShowMoreMenu] = useState(false); 
@@ -106,7 +108,7 @@ const Profile: React.FC<ProfileProps> = ({
 
   // --- Advanced Lightbox State ---
   const [viewingImage, setViewingImage] = useState<string | null>(null);
-  const [profileImagesList, setProfileImagesList] = useState<string[]>([]); // Determines navigation list
+  const [profileImagesList, setProfileImagesList] = useState<string[]>([]); // To navigate between profile and cover
   const [isLiked, setIsLiked] = useState(false);
   const [likesCount, setLikesCount] = useState(120); // Mock starting count
   const [commentsList, setCommentsList] = useState<LocalComment[]>([]);
@@ -156,8 +158,6 @@ const Profile: React.FC<ProfileProps> = ({
   }, [commentsList, viewingImage]);
 
   // --- Lightbox Handlers ---
-  
-  // Generic open helper
   const handleOpenLightbox = (imgSrc: string) => {
       setViewingImage(imgSrc);
       setLikesCount(120); // Reset for demo
@@ -176,6 +176,10 @@ const Profile: React.FC<ProfileProps> = ({
       
       if (profileAlbum && profileAlbum.photos.length > 0) {
           images = profileAlbum.photos.map(p => p.url);
+          // Ensure current is in list if not added
+          if (!images.includes(profileUser.avatar)) {
+              images.unshift(profileUser.avatar);
+          }
       } else {
           images = [profileUser.avatar];
       }
@@ -195,6 +199,9 @@ const Profile: React.FC<ProfileProps> = ({
 
       if (coverAlbum && coverAlbum.photos.length > 0) {
           images = coverAlbum.photos.map(p => p.url);
+          if (!images.includes(profileUser.coverPhoto)) {
+              images.unshift(profileUser.coverPhoto);
+          }
       } else {
           images = [profileUser.coverPhoto];
       }
@@ -208,10 +215,8 @@ const Profile: React.FC<ProfileProps> = ({
       if (!viewingImage || profileImagesList.length <= 1) return;
       
       const currentIndex = profileImagesList.indexOf(viewingImage);
-      // If current image is not in list (e.g. freshly uploaded), start from 0
       const startIdx = currentIndex === -1 ? 0 : currentIndex;
       const nextIndex = (startIdx + 1) % profileImagesList.length;
-      
       setViewingImage(profileImagesList[nextIndex]);
       
       // Reset interactions for new image
@@ -226,7 +231,6 @@ const Profile: React.FC<ProfileProps> = ({
       const currentIndex = profileImagesList.indexOf(viewingImage);
       const startIdx = currentIndex === -1 ? 0 : currentIndex;
       const prevIndex = (startIdx - 1 + profileImagesList.length) % profileImagesList.length;
-      
       setViewingImage(profileImagesList[prevIndex]);
 
       // Reset interactions for new image
@@ -319,7 +323,7 @@ const Profile: React.FC<ProfileProps> = ({
                     className="bg-gray-200 text-black px-4 py-2 rounded-md font-semibold flex items-center gap-2 hover:bg-gray-300 transition"
                 >
                     <UserCheck className="w-5 h-5" />
-                    <span>أصدقاء</span>
+                    <span>{t.profile_is_friend}</span>
                     <ChevronDown className="w-4 h-4" />
                 </button>
                 {showFriendMenu && (
@@ -338,13 +342,13 @@ const Profile: React.FC<ProfileProps> = ({
       } else if (friendshipStatus === 'request_sent') {
           return (
             <button onClick={handleCancelRequest} className="bg-gray-200 text-fb-blue px-4 py-2 rounded-md font-semibold flex items-center gap-2 hover:bg-gray-300 transition">
-                <Clock className="w-5 h-5" /> <span>تم إرسال الطلب</span>
+                <Clock className="w-5 h-5" /> <span>{t.profile_friend_request_sent}</span>
             </button>
           );
       } else {
           return (
             <button onClick={handleAddFriend} className="bg-fb-blue text-white px-4 py-2 rounded-md font-semibold flex items-center gap-2 hover:bg-blue-700 transition">
-                <UserPlus className="w-5 h-5" /> <span>إضافة صديق</span>
+                <UserPlus className="w-5 h-5" /> <span>{t.profile_add_friend}</span>
             </button>
           );
       }
@@ -382,7 +386,7 @@ const Profile: React.FC<ProfileProps> = ({
                 className="absolute bottom-4 left-4 bg-white px-3 py-1.5 rounded-md flex items-center gap-2 font-semibold text-sm hover:bg-gray-100 transition shadow-sm z-10"
             >
                 <Camera className="w-5 h-5" />
-                <span className="hidden md:inline">تعديل صورة الغلاف</span>
+                <span className="hidden md:inline">{t.profile_edit_cover}</span>
             </button>
           )}
         </div>
@@ -447,14 +451,14 @@ const Profile: React.FC<ProfileProps> = ({
                             className="bg-fb-blue text-white px-4 py-2 rounded-md font-semibold flex items-center gap-2 hover:bg-blue-700 transition"
                         >
                             <Plus className="w-5 h-5" />
-                            <span>إضافة إلى القصة</span>
+                            <span>{t.profile_add_story}</span>
                         </button>
                         <button 
                             onClick={() => setActiveTab('about')}
                             className="bg-gray-200 text-black px-4 py-2 rounded-md font-semibold flex items-center gap-2 hover:bg-gray-300 transition"
                         >
                             <Pen className="w-4 h-4" />
-                            <span>تعديل الملف الشخصي</span>
+                            <span>{t.profile_edit_profile}</span>
                         </button>
                      </>
                  ) : (
@@ -465,7 +469,7 @@ const Profile: React.FC<ProfileProps> = ({
                             className="bg-gray-200 text-black px-4 py-2 rounded-md font-semibold flex items-center gap-2 hover:bg-gray-300 transition"
                         >
                             <MessageCircle className="w-5 h-5" />
-                            <span>مراسلة</span>
+                            <span>{t.profile_message}</span>
                         </button>
                      </>
                  )}
@@ -474,15 +478,19 @@ const Profile: React.FC<ProfileProps> = ({
 
           <div className="h-[1px] bg-gray-300 w-full mb-1"></div>
 
-          <div className="flex items-center gap-1 md:gap-4 overflow-x-auto no-scrollbar pt-1">
-             <div onClick={() => setActiveTab('posts')} className={getTabClass('posts')}>المنشورات</div>
-             <div onClick={() => setActiveTab('about')} className={getTabClass('about')}>حول</div>
-             <div onClick={() => setActiveTab('friends')} className={getTabClass('friends')}>الأصدقاء</div>
-             <div onClick={() => setActiveTab('photos')} className={getTabClass('photos')}>الصور</div>
-             <div onClick={() => setActiveTab('videos')} className={getTabClass('videos')}>مقاطع فيديو/ريلز</div>
+          {/* Navigation Tabs */}
+          <div className="flex items-center justify-between pt-1">
+             {/* Main Scrollable Tabs */}
+             <div className="flex items-center gap-1 md:gap-4 overflow-x-auto no-scrollbar flex-1">
+                <div onClick={() => setActiveTab('posts')} className={getTabClass('posts')}>{t.profile_posts}</div>
+                <div onClick={() => setActiveTab('about')} className={getTabClass('about')}>{t.profile_about}</div>
+                <div onClick={() => setActiveTab('friends')} className={getTabClass('friends')}>{t.profile_friends}</div>
+                <div onClick={() => setActiveTab('photos')} className={getTabClass('photos')}>{t.profile_photos}</div>
+                <div onClick={() => setActiveTab('videos')} className={getTabClass('videos')}>{t.profile_videos}</div>
+             </div>
              
-             {/* More Dropdown */}
-             <div className="relative" ref={moreMenuRef}>
+             {/* More Dropdown - Fixed outside scroll container */}
+             <div className="relative flex-shrink-0" ref={moreMenuRef}>
                  <div 
                     onClick={() => setShowMoreMenu(!showMoreMenu)}
                     className={`flex items-center gap-1 px-4 py-3 font-semibold cursor-pointer whitespace-nowrap transition rounded-md ${
@@ -491,29 +499,29 @@ const Profile: React.FC<ProfileProps> = ({
                         : 'text-gray-500 hover:bg-gray-100'
                     }`}
                  >
-                     <span>المزيد</span>
+                     <span>{t.profile_more}</span>
                      <ChevronDown className="w-4 h-4" />
                  </div>
                  
                  {showMoreMenu && (
-                     <div className="absolute top-full right-0 mt-1 w-48 bg-white rounded-lg shadow-xl border border-gray-100 z-50 overflow-hidden animate-fadeIn">
+                     <div className="absolute top-full left-0 mt-1 w-48 bg-white rounded-lg shadow-xl border border-gray-100 z-50 overflow-hidden animate-fadeIn origin-top-left">
                          <button 
                             onClick={() => { setActiveTab('groups'); setShowMoreMenu(false); }} 
                             className="w-full text-right px-4 py-3 hover:bg-gray-100 text-gray-700 transition text-sm font-medium"
                          >
-                             المجموعات
+                             {t.profile_groups}
                          </button>
                          <button 
                             onClick={() => { setActiveTab('pages'); setShowMoreMenu(false); }} 
                             className="w-full text-right px-4 py-3 hover:bg-gray-100 text-gray-700 transition text-sm font-medium"
                          >
-                             الصفحات
+                             {t.profile_pages}
                          </button>
                          <button 
                             onClick={() => { setActiveTab('events'); setShowMoreMenu(false); }} 
                             className="w-full text-right px-4 py-3 hover:bg-gray-100 text-gray-700 transition text-sm font-medium"
                          >
-                             المناسبات
+                             {t.profile_events}
                          </button>
                      </div>
                  )}
@@ -758,13 +766,13 @@ const Profile: React.FC<ProfileProps> = ({
                     </div>
                     <div className="px-2 py-1 flex items-center justify-between border-b border-gray-200">
                          <button onClick={handleLike} className={`flex-1 flex items-center justify-center gap-2 py-2 hover:bg-gray-100 rounded-md transition font-medium text-sm ${isLiked ? 'text-fb-blue' : 'text-gray-600'}`}>
-                            <ThumbsUp className={`w-5 h-5 ${isLiked ? 'fill-current' : ''}`} /> أعجبني
+                            <ThumbsUp className={`w-5 h-5 ${isLiked ? 'fill-current' : ''}`} /> {t.btn_like}
                          </button>
                          <button className="flex-1 flex items-center justify-center gap-2 py-2 hover:bg-gray-100 rounded-md transition font-medium text-gray-600 text-sm">
-                            <MessageCircle className="w-5 h-5" /> تعليق
+                            <MessageCircle className="w-5 h-5" /> {t.btn_comment}
                          </button>
                          <button className="flex-1 flex items-center justify-center gap-2 py-2 hover:bg-gray-100 rounded-md transition font-medium text-gray-600 text-sm">
-                            <Share2 className="w-5 h-5" /> مشاركة
+                            <Share2 className="w-5 h-5" /> {t.btn_share}
                          </button>
                     </div>
 

@@ -2,6 +2,7 @@
 import React from 'react';
 import { Users, Bookmark, Calendar, Clock, ChevronDown, MonitorPlay, Store, LayoutGrid } from 'lucide-react';
 import { User, View } from '../types';
+import { useLanguage } from '../context/LanguageContext';
 
 interface SidebarProps {
   currentUser: User;
@@ -10,14 +11,16 @@ interface SidebarProps {
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ currentUser, onProfileClick, onNavigate }) => {
+  const { t } = useLanguage();
+
   const menuItems = [
-    { icon: <Users className="h-6 w-6 text-fb-blue" />, label: 'الأصدقاء', view: 'friends' as View },
-    { icon: <Store className="h-6 w-6 text-fb-blue" />, label: 'المتجر (Marketplace)', view: 'marketplace' as View },
-    { icon: <MonitorPlay className="h-6 w-6 text-fb-blue" />, label: 'فيديو', view: 'profile_videos' as View },
-    { icon: <Clock className="h-6 w-6 text-fb-blue" />, label: 'الذكريات', view: 'home' as View },
-    { icon: <Bookmark className="h-6 w-6 text-fb-blue" />, label: 'العناصر المحفوظة', view: 'saved' as View },
-    { icon: <LayoutGrid className="h-6 w-6 text-fb-blue" />, label: 'المجموعات', view: 'home' as View },
-    { icon: <Calendar className="h-6 w-6 text-fb-blue" />, label: 'المناسبات', view: 'home' as View },
+    { icon: <Users className="h-6 w-6 text-fb-blue" />, label: t.nav_friends, view: 'friends' as View },
+    { icon: <Store className="h-6 w-6 text-fb-blue" />, label: t.nav_market, view: 'marketplace' as View },
+    { icon: <MonitorPlay className="h-6 w-6 text-fb-blue" />, label: t.nav_watch, view: 'profile_videos' as View },
+    { icon: <Clock className="h-6 w-6 text-fb-blue" />, label: t.menu_memories, view: 'home' as View },
+    { icon: <Bookmark className="h-6 w-6 text-fb-blue" />, label: t.menu_saved, view: 'saved' as View },
+    { icon: <LayoutGrid className="h-6 w-6 text-fb-blue" />, label: t.menu_groups, view: 'home' as View },
+    { icon: <Calendar className="h-6 w-6 text-fb-blue" />, label: t.menu_events, view: 'home' as View },
   ];
 
   return (
@@ -48,14 +51,14 @@ const Sidebar: React.FC<SidebarProps> = ({ currentUser, onProfileClick, onNaviga
           <div className="w-9 h-9 bg-gray-300 rounded-full flex items-center justify-center">
             <ChevronDown className="h-6 w-6 text-black" />
           </div>
-          <span className="font-medium text-[15px]">عرض المزيد</span>
+          <span className="font-medium text-[15px]">{t.menu_more}</span>
         </li>
       </ul>
 
       <div className="border-t border-gray-300 my-4 mx-2"></div>
 
       <div className="px-2">
-        <h3 className="text-gray-500 font-semibold text-[17px] mb-2">اختصاراتك</h3>
+        <h3 className="text-gray-500 font-semibold text-[17px] mb-2">{t.shortcuts}</h3>
         <ul className="space-y-1">
           {[1, 2, 3].map((i) => (
             <li key={i} className="flex items-center gap-3 p-2 hover:bg-gray-200 rounded-lg cursor-pointer transition">
@@ -67,7 +70,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentUser, onProfileClick, onNaviga
       </div>
       
       <div className="mt-auto p-4 text-xs text-gray-500 leading-normal">
-        الخصوصية · الشروط · الإعلانات · خيارات الإعلانات · ملفات تعريف الارتباط · المزيد · Meta © 2024
+        {t.privacy_footer}
       </div>
     </div>
   );

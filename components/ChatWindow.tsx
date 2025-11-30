@@ -7,6 +7,7 @@ interface ChatWindowProps {
   user: User;
   onClose: () => void;
   currentUser: User;
+  index: number; // New prop to handle position
 }
 
 interface Message {
@@ -16,13 +17,17 @@ interface Message {
   timestamp: string;
 }
 
-const ChatWindow: React.FC<ChatWindowProps> = ({ user, onClose, currentUser }) => {
+const ChatWindow: React.FC<ChatWindowProps> = ({ user, onClose, currentUser, index }) => {
   const [messages, setMessages] = useState<Message[]>([
     { id: '1', text: 'مرحباً! كيف حالك؟', sender: 'them', timestamp: '10:00 م' }
   ]);
   const [inputText, setInputText] = useState('');
   const [isMinimized, setIsMinimized] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Calculate position: Base offset (e.g., 20px) + (Window Width + Gap) * index
+  // Assuming width is 320px (w-80) + 10px gap
+  const positionStyle = { left: `${20 + index * 340}px` };
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -60,17 +65,18 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ user, onClose, currentUser }) =
   if (isMinimized) {
     return (
       <div 
-        className="fixed bottom-0 left-4 w-60 bg-white shadow-lg rounded-t-lg cursor-pointer z-50 flex items-center justify-between p-3 border border-gray-300 hover:bg-gray-50"
+        className="fixed bottom-0 w-60 bg-white dark:bg-gray-800 shadow-lg rounded-t-lg cursor-pointer z-50 flex items-center justify-between p-3 border border-gray-300 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-300"
         onClick={() => setIsMinimized(false)}
+        style={positionStyle}
       >
         <div className="flex items-center gap-2">
            <div className="relative">
              <img src={user.avatar} alt={user.name} className="w-8 h-8 rounded-full border border-gray-200" />
              <div className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 rounded-full border-2 border-white"></div>
            </div>
-           <span className="font-semibold text-sm truncate">{user.name}</span>
+           <span className="font-semibold text-sm truncate text-gray-900 dark:text-white">{user.name}</span>
         </div>
-        <button onClick={(e) => { e.stopPropagation(); onClose(); }} className="text-gray-400 hover:text-gray-600">
+        <button onClick={(e) => { e.stopPropagation(); onClose(); }} className="text-gray-400 hover:text-gray-600 dark:hover:text-white">
            <X className="w-4 h-4" />
         </button>
       </div>
@@ -78,32 +84,35 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ user, onClose, currentUser }) =
   }
 
   return (
-    <div className="fixed bottom-0 left-4 md:left-20 w-80 bg-white shadow-2xl rounded-t-lg border border-gray-200 z-50 flex flex-col h-[400px] animate-slideUp">
+    <div 
+        className="fixed bottom-0 w-80 bg-white dark:bg-gray-800 shadow-2xl rounded-t-lg border border-gray-200 dark:border-gray-700 z-50 flex flex-col h-[400px] animate-slideUp transition-all duration-300"
+        style={positionStyle}
+    >
       {/* Header */}
-      <div className="flex items-center justify-between p-2 border-b shadow-sm bg-white rounded-t-lg">
-        <div className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-1 rounded-md transition">
+      <div className="flex items-center justify-between p-2 border-b dark:border-gray-700 shadow-sm bg-white dark:bg-gray-800 rounded-t-lg">
+        <div className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 p-1 rounded-md transition">
           <div className="relative">
              <img src={user.avatar} alt={user.name} className="w-9 h-9 rounded-full border border-gray-200" />
              <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></div>
           </div>
           <div className="flex flex-col">
-             <span className="font-bold text-sm text-gray-900">{user.name}</span>
-             <span className="text-[10px] text-gray-500">نشط الآن</span>
+             <span className="font-bold text-sm text-gray-900 dark:text-white">{user.name}</span>
+             <span className="text-[10px] text-gray-500 dark:text-gray-400">نشط الآن</span>
           </div>
         </div>
         <div className="flex items-center gap-1 text-fb-blue">
-           <Phone className="w-8 h-8 p-1.5 hover:bg-gray-100 rounded-full cursor-pointer" />
-           <Video className="w-8 h-8 p-1.5 hover:bg-gray-100 rounded-full cursor-pointer" />
-           <Minus className="w-8 h-8 p-1.5 hover:bg-gray-100 rounded-full cursor-pointer text-gray-500" onClick={() => setIsMinimized(true)} />
-           <X className="w-8 h-8 p-1.5 hover:bg-gray-100 rounded-full cursor-pointer text-gray-500" onClick={onClose} />
+           <Phone className="w-8 h-8 p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full cursor-pointer" />
+           <Video className="w-8 h-8 p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full cursor-pointer" />
+           <Minus className="w-8 h-8 p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full cursor-pointer text-gray-500" onClick={() => setIsMinimized(true)} />
+           <X className="w-8 h-8 p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full cursor-pointer text-gray-500" onClick={onClose} />
         </div>
       </div>
 
       {/* Messages Area */}
-      <div className="flex-1 overflow-y-auto p-3 bg-white no-scrollbar">
+      <div className="flex-1 overflow-y-auto p-3 bg-white dark:bg-gray-900 no-scrollbar">
         <div className="flex flex-col items-center mt-4 mb-8">
             <img src={user.avatar} alt={user.name} className="w-16 h-16 rounded-full mb-2" />
-            <h3 className="font-bold text-lg">{user.name}</h3>
+            <h3 className="font-bold text-lg text-gray-900 dark:text-white">{user.name}</h3>
             <p className="text-xs text-gray-500">أنتم أصدقاء على تواصل</p>
         </div>
 
@@ -113,7 +122,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ user, onClose, currentUser }) =
               <div className={`max-w-[75%] px-3 py-2 rounded-2xl text-[15px] ${
                   msg.sender === 'me' 
                     ? 'bg-fb-blue text-white rounded-br-none' 
-                    : 'bg-gray-200 text-black rounded-bl-none'
+                    : 'bg-gray-200 dark:bg-gray-700 text-black dark:text-gray-200 rounded-bl-none'
                 }`}>
                 {msg.text}
               </div>
@@ -124,14 +133,14 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ user, onClose, currentUser }) =
       </div>
 
       {/* Footer / Input */}
-      <div className="p-2 border-t flex items-center gap-2">
+      <div className="p-2 border-t dark:border-gray-700 bg-white dark:bg-gray-800 flex items-center gap-2">
          <MoreHorizontal className="w-6 h-6 text-fb-blue cursor-pointer" />
          <Image className="w-6 h-6 text-fb-blue cursor-pointer" />
          <Smile className="w-6 h-6 text-fb-blue cursor-pointer" />
          <form onSubmit={handleSend} className="flex-1 flex items-center relative">
             <input 
               type="text" 
-              className="w-full bg-gray-100 rounded-full px-3 py-1.5 text-sm outline-none focus:bg-gray-50"
+              className="w-full bg-gray-100 dark:bg-gray-700 dark:text-white rounded-full px-3 py-1.5 text-sm outline-none focus:bg-gray-50 dark:focus:bg-gray-600"
               placeholder="Aa"
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}

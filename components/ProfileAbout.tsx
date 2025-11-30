@@ -10,7 +10,7 @@ interface ProfileAboutProps {
 }
 
 type SectionType = 'overview' | 'work' | 'places' | 'contact' | 'family' | 'details' | 'events';
-type PrivacyLevel = 'public' | 'friends' | 'only_me';
+type PrivacyLevel = 'public' | 'friends' | 'friends_of_friends' | 'only_me';
 type PlaceType = 'current' | 'hometown';
 
 // Data Interfaces
@@ -191,7 +191,7 @@ const PrivacySelect: React.FC<PrivacySelectProps> = ({ value, onChange, small })
   const options: { val: PrivacyLevel; label: string; icon: React.ElementType }[] = [
     { val: 'public', label: t.dir === 'rtl' ? 'عام' : 'Public', icon: Globe },
     { val: 'friends', label: t.dir === 'rtl' ? 'الأصدقاء' : 'Friends', icon: Users },
-    { val: 'friends_of_friends', label: t.dir === 'rtl' ? 'أصدقاءالأصدقاء' : 'friends_of_friends', icon: Users },
+    { val: 'friends_of_friends', label: t.dir === 'rtl' ? 'أصدقاءالأصدقاء' : 'Friends of friends', icon: Users },
     { val: 'only_me', label: t.dir === 'rtl' ? 'أنا فقط' : 'Only Me', icon: Lock },
   ];
 
@@ -248,6 +248,7 @@ const PrivacyIcon: React.FC<{ type: PrivacyLevel }> = ({ type }) => {
     const { t } = useLanguage();
     if (type === 'public') return <span title={t.dir === 'rtl' ? 'عام' : 'Public'} className="inline-flex items-center"><Globe className="w-3.5 h-3.5 text-fb-blue/70" /></span>;
     if (type === 'friends') return <span title={t.dir === 'rtl' ? 'الأصدقاء' : 'Friends'} className="inline-flex items-center"><Users className="w-3.5 h-3.5 text-fb-blue/70" /></span>;
+    if (type === 'friends_of_friends') return <span title={t.dir === 'rtl' ? 'أصدقاء الأصدقاء' : 'Friends of friends'} className="inline-flex items-center"><Users className="w-3.5 h-3.5 text-fb-blue/70" /></span>;
     return <span title={t.dir === 'rtl' ? 'أنا فقط' : 'Only Me'} className="inline-flex items-center"><Lock className="w-3.5 h-3.5 text-fb-blue/70" /></span>;
 };
 

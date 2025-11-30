@@ -22,7 +22,7 @@ type PhotoTab = 'your_photos' | 'tagged_photos' | 'albums';
 type AudienceType = 'public' | 'friends' | 'friends_of_friends' | 'only_me';
 type CommentAudienceType = 'public' | 'friends' | 'mentions';
 type MenuView = 'main' | 'audience' | 'comments';
-type PrivacyLevel = 'public' | 'friends' | 'only_me';
+type PrivacyLevel = 'public' | 'friends' | 'friends_of_friends' | 'only_me';
 
 // Local interface for comments inside lightbox
 interface LocalComment {
@@ -42,7 +42,7 @@ const PrivacySelect: React.FC<PrivacySelectProps> = ({ value, onChange, small })
   const options: { val: PrivacyLevel; label: string; icon: React.ElementType }[] = [
     { val: 'public', label: t.dir === 'rtl' ? 'عام' : 'Public', icon: Globe },
     { val: 'friends', label: t.dir === 'rtl' ? 'الأصدقاء' : 'Friends', icon: Users },
-    { val: 'friends_of_friends', label: t.dir === 'rtl' ? 'أصدقاءالأصدقاء' : 'friends_of_friends', icon: Users },
+    { val: 'friends_of_friends', label: t.dir === 'rtl' ? 'أصدقاءالأصدقاء' : 'Friends of friends', icon: Users },
     { val: 'only_me', label: t.dir === 'rtl' ? 'أنا فقط' : 'Only Me', icon: Lock },
   ];
   const selected = options.find((o) => o.val === value) || options[0];

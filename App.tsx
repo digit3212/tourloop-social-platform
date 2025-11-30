@@ -10,7 +10,7 @@ import Watch from './components/Watch';
 import { User, View, Story, Photo, Album, VideoItem, Post } from './types';
 import { Check, Info, X } from 'lucide-react';
 import { LanguageProvider } from './context/LanguageContext';
-import { ThemeProvider } from './context/ThemeContext'; // Import ThemeProvider
+import { ThemeProvider } from './context/ThemeContext';
 
 const initialUser: User = {
   id: 'me',
@@ -105,7 +105,7 @@ const AppContent: React.FC = () => {
   const [userVideos, setUserVideos] = useState<VideoItem[]>([]);
 
   const [viewingProfile, setViewingProfile] = useState<User>(currentUser);
-  const [activeChatUser, setActiveChatUser] = useState<User | null>(null);
+  const [activeChats, setActiveChats] = useState<User[]>([]);
   const [appNotification, setAppNotification] = useState<{message: string, type: 'success' | 'info'} | null>(null);
 
   const showNotification = (message: string, type: 'success' | 'info' = 'success') => {
@@ -316,10 +316,34 @@ const AppContent: React.FC = () => {
       showNotification('تم حذف الصورة بنجاح', 'info');
   };
 
-  const handleToggleSave = (item: Photo | VideoItem) => {
+  const handleToggleSave = (item: Photo | VideoItem | Post) => {
       if ('duration' in item) {
           handleToggleSaveVideo(item as VideoItem);
+      } else if ('content' in item && 'author' in item) {
+          // It's a Post. Convert to Photo-like structure for saving if it has media
+          const post = item as Post;
+          if (post.image) {
+               const photoItem: Photo = {
+                  id: post.id,
+                  url: post.image,
+                  likes: post.likes,
+                  comments: post.comments.length,
+                  description: post.content
+              };
+              
+              const exists = savedPhotos.find(p => p.id === photoItem.id);
+              if (exists) {
+                  setSavedPhotos(prev => prev.filter(p => p.id !== photoItem.id));
+                  showNotification('تمت إزالة المنشور من العناصر المحفوظة', 'info');
+              } else {
+                  setSavedPhotos(prev => [photoItem, ...prev]);
+                  showNotification('تم حفظ المنشور في العناصر المحفوظة');
+              }
+          } else {
+               showNotification('لا يمكن حفظ المنشورات النصية فقط في هذا الإصدار', 'info');
+          }
       } else {
+          // It's a Photo
           const photo = item as Photo;
           const exists = savedPhotos.find(p => p.id === photo.id);
           if (exists) {
@@ -353,8 +377,18 @@ const AppContent: React.FC = () => {
     setView('profile');
   };
 
-  const handleMessageClick = (user: User) => {
-    setActiveChatUser(user);
+  const handleOpenChat = (user: User) => {
+    if (!activeChats.some(c => c.id === user.id)) {
+        setActiveChats(prev => {
+            const newState = [...prev, user];
+            if (newState.length > 3) return newState.slice(1);
+            return newState;
+        });
+    }
+  };
+
+  const handleCloseChat = (userId: string) => {
+      setActiveChats(prev => prev.filter(c => c.id !== userId));
   };
 
   const handleFriendAction = (action: 'unfriend' | 'block', user: User) => {
@@ -387,6 +421,7 @@ const AppContent: React.FC = () => {
                 onPostCreate={handleCreatePost}
                 onTogglePin={handleTogglePinPost}
                 onDeletePost={handleDeletePost}
+                onToggleSave={handleToggleSave}
              />
            )}
 
@@ -418,7 +453,7 @@ const AppContent: React.FC = () => {
                 currentUser={currentUser} 
                 viewingUser={currentView === 'friends' ? currentUser : viewingProfile}
                 onFriendClick={handleFriendClick}
-                onMessageClick={handleMessageClick}
+                onMessageClick={handleOpenChat}
                 onFriendAction={handleFriendAction}
                 defaultTab={currentView === 'friends' ? 'friends' : currentView === 'profile_videos' ? 'videos' : undefined}
                 
@@ -461,16 +496,20 @@ const AppContent: React.FC = () => {
            )}
         </div>
 
-        {currentView !== 'profile' && currentView !== 'friends' && currentView !== 'saved' && currentView !== 'profile_videos' && <Rightbar onlineUsers={onlineUsers} />}
+        {currentView !== 'profile' && currentView !== 'friends' && currentView !== 'saved' && currentView !== 'profile_videos' && (
+            <Rightbar onlineUsers={onlineUsers} onChatClick={handleOpenChat} />
+        )}
       </div>
 
-      {activeChatUser && (
+      {activeChats.map((user, index) => (
         <ChatWindow 
-          user={activeChatUser} 
+          key={user.id}
+          user={user} 
           currentUser={currentUser}
-          onClose={() => setActiveChatUser(null)} 
+          index={index} 
+          onClose={() => handleCloseChat(user.id)} 
         />
-      )}
+      ))}
 
       {appNotification && (
         <div className="fixed bottom-6 right-6 z-[100] animate-bounce-in">

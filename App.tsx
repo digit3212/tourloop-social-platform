@@ -105,7 +105,10 @@ const AppContent: React.FC = () => {
   const [userVideos, setUserVideos] = useState<VideoItem[]>([]);
 
   const [viewingProfile, setViewingProfile] = useState<User>(currentUser);
+  
+  // Replaced single activeChatUser with an array for multiple chats
   const [activeChats, setActiveChats] = useState<User[]>([]);
+  
   const [appNotification, setAppNotification] = useState<{message: string, type: 'success' | 'info'} | null>(null);
 
   const showNotification = (message: string, type: 'success' | 'info' = 'success') => {
@@ -316,34 +319,10 @@ const AppContent: React.FC = () => {
       showNotification('تم حذف الصورة بنجاح', 'info');
   };
 
-  const handleToggleSave = (item: Photo | VideoItem | Post) => {
+  const handleToggleSave = (item: Photo | VideoItem) => {
       if ('duration' in item) {
           handleToggleSaveVideo(item as VideoItem);
-      } else if ('content' in item && 'author' in item) {
-          // It's a Post. Convert to Photo-like structure for saving if it has media
-          const post = item as Post;
-          if (post.image) {
-               const photoItem: Photo = {
-                  id: post.id,
-                  url: post.image,
-                  likes: post.likes,
-                  comments: post.comments.length,
-                  description: post.content
-              };
-              
-              const exists = savedPhotos.find(p => p.id === photoItem.id);
-              if (exists) {
-                  setSavedPhotos(prev => prev.filter(p => p.id !== photoItem.id));
-                  showNotification('تمت إزالة المنشور من العناصر المحفوظة', 'info');
-              } else {
-                  setSavedPhotos(prev => [photoItem, ...prev]);
-                  showNotification('تم حفظ المنشور في العناصر المحفوظة');
-              }
-          } else {
-               showNotification('لا يمكن حفظ المنشورات النصية فقط في هذا الإصدار', 'info');
-          }
       } else {
-          // It's a Photo
           const photo = item as Photo;
           const exists = savedPhotos.find(p => p.id === photo.id);
           if (exists) {
@@ -377,16 +356,19 @@ const AppContent: React.FC = () => {
     setView('profile');
   };
 
+  // Open a chat window for a user
   const handleOpenChat = (user: User) => {
     if (!activeChats.some(c => c.id === user.id)) {
+        // Add to active chats (limit max 3 to prevent clutter)
         setActiveChats(prev => {
             const newState = [...prev, user];
-            if (newState.length > 3) return newState.slice(1);
+            if (newState.length > 3) return newState.slice(1); // Remove oldest
             return newState;
         });
     }
   };
 
+  // Close a chat window
   const handleCloseChat = (userId: string) => {
       setActiveChats(prev => prev.filter(c => c.id !== userId));
   };
@@ -453,7 +435,7 @@ const AppContent: React.FC = () => {
                 currentUser={currentUser} 
                 viewingUser={currentView === 'friends' ? currentUser : viewingProfile}
                 onFriendClick={handleFriendClick}
-                onMessageClick={handleOpenChat}
+                onMessageClick={handleOpenChat} // Use new chat handler
                 onFriendAction={handleFriendAction}
                 defaultTab={currentView === 'friends' ? 'friends' : currentView === 'profile_videos' ? 'videos' : undefined}
                 
@@ -501,12 +483,13 @@ const AppContent: React.FC = () => {
         )}
       </div>
 
+      {/* Render Active Chat Windows */}
       {activeChats.map((user, index) => (
         <ChatWindow 
           key={user.id}
           user={user} 
           currentUser={currentUser}
-          index={index} 
+          index={index} // Pass index for positioning
           onClose={() => handleCloseChat(user.id)} 
         />
       ))}
